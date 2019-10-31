@@ -1,0 +1,42 @@
+version: '3.6'
+## docker login docker.iscinternal.com
+## Connect to SMP mirror A
+## http://127.0.0.1:9092/csp/sys/UtilHome.csp
+## Commands: 
+# docker exec -it mirrorA iris session IRIS
+
+services:
+  mirrorA:
+    container_name: mirrorA
+    hostname: mirrorA
+    image: intersystems/iris:2019.2.0.109.0
+    volumes:
+      - ./irisA:/ISC
+      - ./:/ISC/utiles
+    environment:
+      - ISC_DATA_DIRECTORY=/ISC/install
+      - IRIS_hostname=mirrorA
+    ports:
+      - "9092:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -p /ISC/utiles/pwdA.txt
+      -a /ISC/utiles/installer.sh
+      
+  mirrorB:
+    container_name: mirrorB
+    hostname: mirrorB
+    image: intersystems/iris:2019.2.0.109.0
+    volumes:
+      - ./irisB:/ISC
+      - ./:/ISC/utiles
+    environment:
+      - ISC_DATA_DIRECTORY=/ISC/install
+      - IRIS_hostname=mirrorB
+    ports:
+      - "9093:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -p /ISC/utiles/pwdB.txt
+      -a /ISC/utiles/installer.sh
+      
