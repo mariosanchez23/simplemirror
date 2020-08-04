@@ -3,7 +3,7 @@ Include %occInclude
 Class Mirror.Installer
 {
 
-ClassMethod setup(hostname) As %Status
+ClassMethod setup(hostname,hostnameArbiter) As %Status
 {
   if $system.Mirror.IsMember() {
 		write !,"This system is already configured as a mirror member"
@@ -14,7 +14,7 @@ ClassMethod setup(hostname) As %Status
     do ..enableMirrorService()
   
     if hostname="mirrorA" {
-      do ..createMirror("mirrorA")
+      do ..createMirror("mirrorA",hostnameArbiter)
     } else {
       // Allow some time to create mirror in primary
       h 2
@@ -26,11 +26,12 @@ ClassMethod setup(hostname) As %Status
   quit $$$OK
 }
 
-ClassMethod createMirror(hostname) As %Status
+ClassMethod createMirror(hostname,hostnameArbiter) As %Status
 {
   set mirrorName="MIRRORSET"
   // Create mirror:
   set mirror("UseSSL") = 0
+  set mirror("ArbiterNode") = hostnameArbiter_"|2188"
   set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, hostname, .mirror)
   write !,"Creating mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)  
@@ -72,8 +73,19 @@ ClassMethod createMirrorDB() As %Status
   // Add DB to config
   set Properties("Directory")=dir_dirName
   do ##class(Config.Databases).Create(mirDBName,.Properties)
-  // Set the DB properties
-  set Properties("Directory")=dir_dirName
+
+  // wait until mirror's ready
+  for i=1:1:10 {
+    h 1
+    set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
+    if mirrorStatus="Backup" Quit
+    if mirrorStatus="Primary" Quit
+  }
+  if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")) { 
+    write "Mirror failed to be ready: Mirror Status:"_mirrorStatus,!
+    quit '$$$OK
+  }
+
   set rc = ##class(SYS.Database).CreateDatabase(dir_dirName,,,,,,mirDBName,mirrorName)
   if 'rc { 
     write !,"Database creation failed!"

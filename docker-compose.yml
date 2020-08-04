@@ -1,22 +1,30 @@
-version: '3.6'
+version: '3.7'
 ## docker login docker.iscinternal.com
 ## Connect to SMP mirror A
 ## http://127.0.0.1:9092/csp/sys/UtilHome.csp
 ## Commands: 
 # docker exec -it mirrorA iris session IRIS
 
+x-var: &IRIS_IMAGE
+  "intersystems/iris:2020.1.0.215.0"
+x-var: &ARBITER_IMAGE
+  "intersystems/arbiter:2020.1.0.215.0"
+
 services:
   mirrorA:
     container_name: mirrorA
     hostname: mirrorA
-    #image: docker.iscinternal.com/intersystems/iris:2019.3.0-latest
-    image: intersystems/iris:2019.3.0.302.0
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - arbiter
     volumes:
       - ./irisA:/ISC
       - ./:/ISC/utiles
     environment:
       - ISC_DATA_DIRECTORY=/ISC/install
       - IRIS_hostname=mirrorA
+      - ARBITER_hostname=arbiter
     ports:
       - "9092:52773"
     command:
@@ -26,9 +34,11 @@ services:
   mirrorB:
     container_name: mirrorB
     hostname: mirrorB
-    #image: docker.iscinternal.com/intersystems/iris:2019.3.0-latest
-    image: intersystems/iris:2019.3.0.302.0
-    
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - mirrorA
+      - arbiter
     volumes:
       - ./irisB:/ISC
       - ./:/ISC/utiles
@@ -40,4 +50,11 @@ services:
     command:
       --key /ISC/utiles/iris.key
       -a /ISC/utiles/installer.sh
-    
+
+  arbiter:
+    container_name: arbiter
+    hostname: arbiter
+    image: *ARBITER_IMAGE
+    init: true    
+    command: 
+      - /usr/local/etc/irissys/startISCAgent.sh 2188

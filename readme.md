@@ -17,10 +17,11 @@ Regarding the Iris docker image, you can either download from Intersystems or us
 - ### Download an image from Intersystems and load the image
     Download the version you need from Intersystems and use **docker load** command to load the image. You will need to have access to wrc.intersystems.com, then go to distributions and find the version you need. I recommend to download 2019.3 and later.
     When I was writing this the version "iris-2019.3.0.302.0-docker.tar.gz" was under the preview tag (where you can also get a preview License key)
-
+    
     ```
-    docker load -i iris-2019.3.0.302.0-docker.tar.gz
-
+    docker load -i iris-2020.1.0.215.0-docker.tar.gz
+    docker load -i arbiter-2020.1.0.215.0-docker.tar.gz
+    sudo chown 51773:51773 iris?
     docker-compose up -d
     ```
 - ### Or use a docker hub to download the image
@@ -61,10 +62,10 @@ Stop the containers:
 ```shell
 docker-compose down
 ```
-And remove the irisA and irisB folders
+And remove the contents of irisA and irisB folders
 
 ```shell
-rm -R iris?
+sudo rm -fR iris?/*
 docker-compose up -d
 ```
 
