@@ -1,0 +1,10 @@
+{
+    "objectscript.conn": {
+        "ns": "MIRRORNS",
+        "host": "localhost",
+        "port": 9092,
+        "username": "SuperUser",
+        "password": "SYS",
+        "active": true
+    }
+}

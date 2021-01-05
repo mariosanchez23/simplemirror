@@ -6,9 +6,9 @@ version: '3.7'
 # docker exec -it mirrorA iris session IRIS
 
 x-var: &IRIS_IMAGE
-  "intersystems/iris:2020.1.0.215.0"
+  "containers.intersystems.com/intersystems/iris:2020.3.0.221.0"
 x-var: &ARBITER_IMAGE
-  "intersystems/arbiter:2020.1.0.215.0"
+  "containers.intersystems.com/intersystems/arbiter:2020.3.0.221.0"
 
 services:
   mirrorA:
@@ -21,16 +21,25 @@ services:
     volumes:
       - ./irisA:/ISC
       - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./project:/project
+      - ./uploadA:/home/irisowner/upload
     environment:
       - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorA
-      - ARBITER_hostname=arbiter
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=mirrorA
+      - ARBITER_ip=10.0.100.2
+      - TZ=JST-9
     ports:
       - "9092:52773"
     command:
       --key /ISC/utiles/iris.key
       -a /ISC/utiles/installer.sh
-    
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.2    
+      arbiter-tier:
+
   mirrorB:
     container_name: mirrorB
     hostname: mirrorB
@@ -42,14 +51,22 @@ services:
     volumes:
       - ./irisB:/ISC
       - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./uploadB:/home/irisowner/upload
     environment:
       - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorB
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=mirrorB
+      - TZ=JST-9
     ports:
       - "9093:52773"
     command:
       --key /ISC/utiles/iris.key
       -a /ISC/utiles/installer.sh
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.3    
+      arbiter-tier:
 
   arbiter:
     container_name: arbiter
@@ -58,3 +75,22 @@ services:
     init: true    
     command: 
       - /usr/local/etc/irissys/startISCAgent.sh 2188
+    environment:
+      - TZ=JST-9
+    networks:
+      arbiter-tier:
+        ipv4_address: 10.0.100.2    
+
+networks:
+  iris-tier:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.1.0/24
+  arbiter-tier:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.100.0/24
