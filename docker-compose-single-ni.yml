@@ -28,9 +28,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorA
-      - ARBITER_ip=10.0.100.10
-      - MirrorAddress_ip=10.0.1.2
-      - ECPAddress_ip=10.0.100.2
+      - ARBITER_ip=10.1.100.10
+      - MirrorAddress_ip=10.1.1.2
+      - ECPAddress_ip=10.1.1.2
       - TZ=JST-9
     ports:
       - "9092:52773"
@@ -39,8 +39,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.2    
-      arbiter-tier:
+        ipv4_address: 10.1.1.2    
 
   mirrorB:
     container_name: mirrorB
@@ -59,9 +58,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorB
-      - primaryAgentAddress_ip=10.0.1.2
-      - MirrorAddress_ip=10.0.1.3
-      - ECPAddress_ip=10.0.100.3
+      - primaryAgentAddress_ip=10.1.1.2
+      - MirrorAddress_ip=10.1.1.3
+      - ECPAddress_ip=10.1.1.3
       - TZ=JST-9
     ports:
       - "9093:52773"
@@ -70,8 +69,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.3    
-      arbiter-tier:
+        ipv4_address: 10.1.1.3    
 
   arbiter:
     container_name: arbiter
@@ -83,8 +81,8 @@ services:
     environment:
       - TZ=JST-9
     networks:
-      arbiter-tier:
-        ipv4_address: 10.0.100.10
+      iris-tier:
+        ipv4_address: 10.1.100.10  
 
 networks:
   iris-tier:
@@ -92,10 +90,4 @@ networks:
     ipam:
       driver: default
       config:
-      - subnet: 10.0.1.0/24
-  arbiter-tier:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 10.0.100.0/24
+      - subnet: 10.1.0.0/16

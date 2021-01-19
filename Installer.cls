@@ -3,7 +3,7 @@ Include %occInclude
 Class Mirror.Installer
 {
 
-ClassMethod setup(systemname, ArbiterIP) As %Status
+ClassMethod setup(systemname) As %Status
 {
   if $system.Mirror.IsMember() {
 		write !,"This system is already configured as a mirror member"
@@ -14,11 +14,11 @@ ClassMethod setup(systemname, ArbiterIP) As %Status
     do ..enableMirrorService()
   
     if systemname="mirrorA" {
-      do ..createMirror("mirrorA",ArbiterIP)
+      do ..createMirror(systemname)
     } else {
       // Allow some time to create mirror in primary
-      h 3
-      set primaryAgentAddress="10.0.1.2"
+      //h 3
+      set primaryAgentAddress=$SYSTEM.Util.GetEnviron("primaryAgentAddress_ip")  //"10.0.1.2"
       do ..joinAsFailover(systemname,primaryAgentAddress)
     }
     // Create DB and add it to mirror
@@ -27,14 +27,14 @@ ClassMethod setup(systemname, ArbiterIP) As %Status
   quit $$$OK
 }
 
-ClassMethod createMirror(systemname, ArbiterIP) As %Status
+ClassMethod createMirror(systemname) As %Status
 {
   set mirrorName="MIRRORSET"
   // Create mirror:
   set MirrorInfo("UseSSL") = 0
-  set MirrorInfo("ArbiterNode") = ArbiterIP_"|2188"
-  set MirrorInfo("MirrorAddress") = "10.0.1.2"
-  set MirrorInfo("ECPAddress") = "10.0.100.3"
+  set MirrorInfo("ArbiterNode") = $SYSTEM.Util.GetEnviron("ARBITER_ip")_"|2188" // "10.0.100.10|2188"
+  set MirrorInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") //"10.0.1.2"
+  set MirrorInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.2"
   set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, systemname, .MirrorInfo)
   write !,"Creating mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)  
@@ -47,8 +47,8 @@ ClassMethod joinAsFailover(systemname, agentAddress) As %Status
   set instanceName="IRIS"
   
   // Join as failover:
-  set LocalInfo("MirrorAddress") = "10.0.1.3"
-  set LocalInfo("ECPAddress") = "10.0.100.4"
+  set LocalInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") // "10.0.1.3"
+  set LocalInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.3"
   s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,systemname,instanceName,agentAddress,,.LocalInfo)
   write !,"Jonining mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)
@@ -111,8 +111,6 @@ ClassMethod createMirrorDB() As %Status
   Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
     
   if (mirrorStatus="Primary") {
-    ;Set $NAMESPACE=mirNSName
-    ;Set tSC=$SYSTEM.OBJ.ImportDir("/project","","ck",.e,1)
     Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)
     Set tSC=##class(MyInstallerPackage.Installer).setup()
     Set $NAMESPACE=mirNSName
