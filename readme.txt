@@ -19,7 +19,7 @@ Incoming Journal Transfer Rate for This Member (over refresh interval)
  0.00 KB/s (11s interval)
 
 Arbiter Connection Status:
-     Arbiter Address:   10.0.100.2|2188
+     Arbiter Address:   10.0.100.10|2188
      Failover Mode:     Agent Controlled
      Connection Status: This member is not connected to the arbiter
 
