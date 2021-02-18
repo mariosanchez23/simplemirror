@@ -50,3 +50,14 @@ This is 7th case of Mirror Responses to Lost Connections.
 # docker-compose exec mirrorA iris list
         status:       down, last used Thu Dec 24 09:21:10 2020
 
+
+----
+HealthCheck endpoints
+$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
+< HTTP/1.1 200 OK
+SUCCESS
+
+$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
+< HTTP/1.1 503 Service Unavailable
+FAILED
+
