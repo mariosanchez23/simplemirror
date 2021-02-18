@@ -1,3 +1,17 @@
+This is a No VIP mirror configuration.
+
+I'm using Dmitriy's web gateway container.
+https://community.intersystems.com/post/apache-and-containerised-iris
+
+You have to build it after overwrting webgateway-entrypoint.sh provided by my repo.
+$ git clone thisrepo
+$ git clone https://github.com/caretdev/iris-webgateway-example
+$ copy ./simplemirror/webgateway-entrypoint.sh iris-webgateway-example/
+$ cd iris-webgateway-example
+$ docker-compose build
+
+
+
 To force some events in Arbiter Controlled Mode 
 https://docs.intersystems.com/irislatest/csp/docbook/Doc.View.cls?KEY=GHA_mirror_set#GHA_mirror_set_autofail_details_arbmode
 
@@ -52,12 +66,14 @@ This is 7th case of Mirror Responses to Lost Connections.
 
 
 ----
-  # https://community.intersystems.com/post/apache-and-containerised-iris
-  # https://github.com/caretdev/iris-webgateway-example
-  # http://irishost/csp/bin/Systems/Module.cxw to access csp portal
+
+csp portal
+http://irishost/csp/bin/Systems/Module.cxw           (via webgw container)
+http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen  (mirrorA)
+http://irishost:9093/csp/sys/%25CSP.Portal.Home.zen  (mirrorB)
 
 
-HealthCheck endpoints
+HealthCheck endpoints and their behaivor. These are what LB will see.
 $ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
@@ -66,3 +82,37 @@ $ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FAILED
 
+$ docker-compose exec mirrorA iris stop iris quietly
+$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
+< HTTP/1.1 200 OK
+SUCCESS
+
+$ docker-compose exec mirrorA iris start iris quietly
+$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
+< HTTP/1.1 503 Service Unavailable
+FAILED
+
+$ docker-compose exec mirrorB iris stop iris quietly
+$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
+< HTTP/1.1 200 OK
+SUCCESS
+
+$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
+curl: (28) Operation timed out after 5000 milliseconds with 0 bytes received
+
+------
+TEST if Virtual IP is available or not... I guess not.
+
+apt-get update
+apt-get install -y arping
+apt -y install network-manager
+
+root@mirrorA:/home/irisowner# nmcli c m eth0 +ipv4.address 10.0.100.5/24
+Error: Could not create NMClient object: Could not connect: No such file or directory.
+root@mirrorA:/home/irisowner#
+root@mirrorA:/home/irisowner# ip addr add 10.0.100.5/24 dev eth0
+RTNETLINK answers: Operation not permitted
+
+-----
+Interesting reading.
+https://qiita.com/BooookStore/items/5862515209a31658f88c

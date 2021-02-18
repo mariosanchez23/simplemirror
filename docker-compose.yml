@@ -1,10 +1,4 @@
 version: '3.7'
-## docker login docker.iscinternal.com
-## Connect to SMP mirror A
-## http://127.0.0.1:9092/csp/sys/UtilHome.csp
-## Commands: 
-# docker exec -it mirrorA iris session IRIS
-
 x-var: &IRIS_IMAGE
   "containers.intersystems.com/intersystems/iris:2020.3.0.221.0"
 x-var: &ARBITER_IMAGE

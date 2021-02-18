@@ -5,6 +5,6 @@
         "port": 9092,
         "username": "SuperUser",
         "password": "SYS",
-        "active": true
+        "active": false
     }
 }
