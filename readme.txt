@@ -52,6 +52,11 @@ This is 7th case of Mirror Responses to Lost Connections.
 
 
 ----
+  # https://community.intersystems.com/post/apache-and-containerised-iris
+  # https://github.com/caretdev/iris-webgateway-example
+  # http://irishost/csp/bin/Systems/Module.cxw to access csp portal
+
+
 HealthCheck endpoints
 $ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
 < HTTP/1.1 200 OK

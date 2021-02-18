@@ -43,6 +43,7 @@ services:
       iris-tier:
         ipv4_address: 10.0.1.2    
       arbiter-tier:
+        ipv4_address: 10.0.100.2   
 
   mirrorB:
     container_name: mirrorB
@@ -74,6 +75,7 @@ services:
       iris-tier:
         ipv4_address: 10.0.1.3    
       arbiter-tier:
+        ipv4_address: 10.0.100.3    
 
   arbiter:
     container_name: arbiter
@@ -88,9 +90,6 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.10
 
-  # https://community.intersystems.com/post/apache-and-containerised-iris
-  # https://github.com/caretdev/iris-webgateway-example
-  # http://irishost/csp/bin/Systems/Module.cxw to access csp portal
   webgw:
     container_name: webgw
     hostname: webgw
@@ -99,16 +98,16 @@ services:
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
-      - SERVER_HOST=mirrorA
+      - SERVER_HOST=10.0.100.2
       - SERVER_PORT=1972
       - CONFIG_NAME2=MIRRORB
-      - SERVER_HOST2=mirrorB
+      - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
     ports:
       - "80:80"
     networks:
-      iris-tier:
-        ipv4_address: 10.0.1.10  
+      arbiter-tier:
+        ipv4_address: 10.0.100.11
 
 networks:
   iris-tier:

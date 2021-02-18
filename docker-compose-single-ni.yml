@@ -9,6 +9,8 @@ x-var: &IRIS_IMAGE
   "containers.intersystems.com/intersystems/iris:2020.3.0.221.0"
 x-var: &ARBITER_IMAGE
   "containers.intersystems.com/intersystems/arbiter:2020.3.0.221.0"
+x-var: &WEBGW_IMAGE
+  "iris-webgateway-example_web:latest"
 
 services:
   mirrorA:
@@ -82,7 +84,26 @@ services:
       - TZ=JST-9
     networks:
       iris-tier:
-        ipv4_address: 10.1.100.10  
+        ipv4_address: 10.1.100.10
+
+  webgw:
+    container_name: webgw
+    hostname: webgw
+    image: *WEBGW_IMAGE
+    init: true    
+    environment:
+      - TZ=JST-9
+      - CONFIG_NAME=MIRRORA
+      - SERVER_HOST=mirrorA
+      - SERVER_PORT=1972
+      - CONFIG_NAME2=MIRRORB
+      - SERVER_HOST2=mirrorB
+      - SERVER_PORT2=1972
+    ports:
+      - "80:80"
+    networks:
+      iris-tier:
+        ipv4_address: 10.1.100.11
 
 networks:
   iris-tier:
