@@ -1,16 +1,22 @@
+# About
 This is a No VIP mirror configuration.
+(VIP dosen't work in container anyway.)
 
+# How to setup.
 I'm using Dmitriy's web gateway container.
 https://community.intersystems.com/post/apache-and-containerised-iris
 
 You have to build it after overwrting webgateway-entrypoint.sh provided by my repo.
-$ git clone thisrepo
+$ git clone https://github.com/IRISMeister/simplemirror.git
 $ git clone https://github.com/caretdev/iris-webgateway-example
 $ copy ./simplemirror/webgateway-entrypoint.sh iris-webgateway-example/
 $ cd iris-webgateway-example
 $ docker-compose build
+$ cd ../simplemirror
 
-
+$ ./start.sh
+ or
+$ ./start-single-bridge.sh   (mimics typical cloud env where you have only one NIC)
 
 To force some events in Arbiter Controlled Mode 
 https://docs.intersystems.com/irislatest/csp/docbook/Doc.View.cls?KEY=GHA_mirror_set#GHA_mirror_set_autofail_details_arbmode
@@ -21,10 +27,10 @@ If the connection between the primary and the backup is broken in arbiter contro
 This is 6th case of Mirror Responses to Lost Connections.
 https://docs.intersystems.com/irislatest/csp/docbook/images/gha_mirror_response_lost_connections.png
 
-# docker network disconnect simplemirror_iris-tier mirrorB ; docker network disconnect simplemirror_arbiter-tier mirrorB
+$ docker network disconnect simplemirror_iris-tier mirrorB ; docker network disconnect simplemirror_arbiter-tier mirrorB
 ...mirrorA will be switche to "agent controlled mode"
 
-# docker-compose exec mirrorB iris session iris -U %SYS MIRROR
+$ docker-compose exec mirrorB iris session iris -U %SYS MIRROR
 %SYS>D ^MIRROR
 1) Mirror Status
 4) Status Monitor
@@ -49,19 +55,19 @@ MIRRORB
 
 2)If the primary learns that the arbiter is still connected to the backup
 This is 4th case of Mirror Responses to Lost Connections.
-# docker network disconnect simplemirror_iris-tier mirrorA
+$ docker network disconnect simplemirror_iris-tier mirrorA
 
 3)If the primary has lost its arbiter connection as well as its connection to the backup, it remains in the trouble state indefinitely so that the backup can safely take over. 
 If failover occurs, when the connection is restored the primary shuts down.
 This is 7th case of Mirror Responses to Lost Connections.
 !!! This is the only case which backup takes over automatically !!!
 
-# docker network disconnect simplemirror_iris-tier mirrorA ; docker network disconnect simplemirror_arbiter-tier mirrorA
+$ docker network disconnect simplemirror_iris-tier mirrorA ; docker network disconnect simplemirror_arbiter-tier mirrorA
 ...mirrorB will become Primary automatically.
 
-# docker network connect simplemirror_iris-tier mirrorA 
+$ docker network connect simplemirror_iris-tier mirrorA 
 ...eventually mirrorA will be force shutdown.
-# docker-compose exec mirrorA iris list
+$ docker-compose exec mirrorA iris list
         status:       down, last used Thu Dec 24 09:21:10 2020
 
 
@@ -77,6 +83,14 @@ HealthCheck endpoints and their behaivor. These are what LB will see.
 $ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
+
+Let's abuse to see what happens.
+$ curl -m 5 http://localhost/csp/a/mirror_status.cxw?[1-20]
+
+If you see lots of [Status=Server], disable it.
+[SYSTEM]
+REGISTRY_METHODS=Disabled
+https://wrc.intersystems.com/wrc/ProblemViewTabs.csp?OBJID=903951
 
 $ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
@@ -101,11 +115,12 @@ $ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
 curl: (28) Operation timed out after 5000 milliseconds with 0 bytes received
 
 ------
-TEST if Virtual IP is available or not... I guess not.
 
-apt-get update
-apt-get install -y arping
-apt -y install network-manager
+Ny tests to see if Virtual IP is available or not... I guess not.
+
+root@mirrorA:/home/irisowner# apt-get update
+root@mirrorA:/home/irisowner# apt-get install -y arping
+root@mirrorA:/home/irisowner# apt -y install network-manager
 
 root@mirrorA:/home/irisowner# nmcli c m eth0 +ipv4.address 10.0.100.5/24
 Error: Could not create NMClient object: Could not connect: No such file or directory.
@@ -114,5 +129,5 @@ root@mirrorA:/home/irisowner# ip addr add 10.0.100.5/24 dev eth0
 RTNETLINK answers: Operation not permitted
 
 -----
-Interesting reading.
+Interesting read.
 https://qiita.com/BooookStore/items/5862515209a31658f88c
