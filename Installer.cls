@@ -110,11 +110,15 @@ ClassMethod createMirrorDB() As %Status
   }
   Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
     
+  Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)
   if (mirrorStatus="Primary") {
-    Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)
     Set tSC=##class(MyInstallerPackage.Installer).setup()
+    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
     Set $NAMESPACE=mirNSName
     Do ##class(Ens.Director).StartProduction()    
+  }
+  Else {
+    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
   }
 
   quit $$$OK

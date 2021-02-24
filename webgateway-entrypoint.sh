@@ -28,7 +28,7 @@ port2=${SERVER_PORT2-51773}
 
 # [SYSTEM]
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM]" "System_Manager" "*.*.*.*"
-# to prevent [Status=Server] connections. https://wrc.intersystems.com/wrc/ProblemViewTabs.csp?OBJID=903951
+# to prevent [Status=Server] connections. WRC #903951
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM]" "REGISTRY_METHODS" "Disabled"
 
 # [SYSTEM_INDEX]

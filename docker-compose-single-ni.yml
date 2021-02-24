@@ -80,9 +80,9 @@ services:
       iris-tier:
         ipv4_address: 10.1.100.10
 
-  webgw:
-    container_name: webgw
-    hostname: webgw
+  webgw1:
+    container_name: webgw1
+    hostname: webgw1
     image: *WEBGW_IMAGE
     init: true    
     environment:
@@ -94,10 +94,29 @@ services:
       - SERVER_HOST2=mirrorB
       - SERVER_PORT2=1972
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       iris-tier:
         ipv4_address: 10.1.100.11
+
+  webgw2:
+    container_name: webgw2
+    hostname: webgw2
+    image: *WEBGW_IMAGE
+    init: true    
+    environment:
+      - TZ=JST-9
+      - CONFIG_NAME=MIRRORA
+      - SERVER_HOST=mirrorA
+      - SERVER_PORT=1972
+      - CONFIG_NAME2=MIRRORB
+      - SERVER_HOST2=mirrorB
+      - SERVER_PORT2=1972
+    ports:
+      - "8081:80"
+    networks:
+      iris-tier:
+        ipv4_address: 10.1.100.12
 
 networks:
   iris-tier:

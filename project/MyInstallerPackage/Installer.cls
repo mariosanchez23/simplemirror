@@ -14,8 +14,17 @@ XData setup [ XMLNamespace = INSTALLER ]
 		<Arg Value=".e" />
 		<Arg Value="1" />
 	</Invoke>
-	<Production Name="${ProductionName}" AutoStart="1">
+ 	<Production Name="${ProductionName}" AutoStart="1">
 	</Production>
+</Namespace>
+</Manifest>
+}
+
+XData setup2 [ XMLNamespace = INSTALLER ]
+{
+<Manifest>
+<Namespace Name="${NAMESPACE}" Create="no">
+ 	<CSPApplication Url="/csp/${NAMESPACE}" Directory="${CSPDIR}${NAMESPACE}" Resource=""/>
 </Namespace>
 </Manifest>
 }
@@ -24,20 +33,57 @@ XData setup [ XMLNamespace = INSTALLER ]
 ClassMethod setupMethod(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
 {
     #; Let our XGL document generate code for this method. 
-    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, 
-    %code, "setup")
+    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "setup")
+}
+
+ClassMethod setupMethod2(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
+{
+    #; Let our XGL document generate code for this method. 
+    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "setup2")
 }
 
 ClassMethod setup(ByRef tVars) As %Status
 {
-  Set tSC='$$$OK
-  Try {
+	Set tSC='$$$OK
+	Try {
 		If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
 		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="MIRRORNS" }
 		$$$THROWONERROR(tSC,..setupMethod(.tVars))
-  } Catch(e) {
-	  Set tSC=e.AsStatus()
-  }
+	} Catch(e) {
+		Set tSC=e.AsStatus()
+	}
+	
+  Return tSC
+}
+
+ClassMethod setup2(ByRef tVars) As %Status
+{
+	Set tSC='$$$OK
+	Try {
+		If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
+		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="MIRRORNS" }
+		$$$THROWONERROR(tSC,..setupMethod2(.tVars))
+	} Catch(e) {
+		Set tSC=e.AsStatus()
+	}
+
+	Set oldns=$NAMESPACE
+	New $NAMESPACE
+	Set $NAMESPACE="%SYS"
+
+	Set webapp="/csp/"_tVars("NAMESPACE")_"/"
+	Set tSC = ##Class(Security.Applications).Get(webapp,.props)
+	$$$ThrowOnError(tSC)
+	Set props("DispatchClass")="MyApp.disp"
+	Set props("Resource")=""
+	Set props("MatchRoles")=":%All"
+	Set props("NameSpace")=tVars("NAMESPACE")
+	Kill props("Type")
+	Set tSC = ##Class(Security.Applications).Modify(webapp,.props)
+	$$$ThrowOnError(tSC)
+
+	Set $NAMESPACE=oldns
+	
   Return tSC
 }
 

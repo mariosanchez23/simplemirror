@@ -6,10 +6,14 @@ This is a No VIP mirror configuration.
 I'm using Dmitriy's web gateway container.
 https://community.intersystems.com/post/apache-and-containerised-iris
 
-You have to build it after overwrting webgateway-entrypoint.sh provided by my repo.
+You have to build it after overwrting webgateway-entrypoint.sh and webgateway.conf provided by my repo in order to make it 
+- mirror aware
+- recognize /api/
+
 $ git clone https://github.com/IRISMeister/simplemirror.git
 $ git clone https://github.com/caretdev/iris-webgateway-example
 $ copy ./simplemirror/webgateway-entrypoint.sh iris-webgateway-example/
+$ copy ./simplemirror/webgateway.conf iris-webgateway-example/
 $ cd iris-webgateway-example
 $ docker-compose build
 $ cd ../simplemirror
@@ -72,51 +76,161 @@ $ docker-compose exec mirrorA iris list
 
 
 ----
+# Web endpoints
 
-csp portal
-http://irishost/csp/bin/Systems/Module.cxw           (via webgw container)
-http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen  (mirrorA)
-http://irishost:9093/csp/sys/%25CSP.Portal.Home.zen  (mirrorB)
+web g/w portal
+http://irishost:9092/csp/bin/Systems/Module.cxw      (via built-in apache for mirrorA) ->You are not authorized to use this facility
+http://irishost:9093/csp/bin/Systems/Module.cxw      (via built-in apache for mirrorB) ->You are not authorized to use this facility
+http://irishost:8080/csp/bin/Systems/Module.cxw      (via webgw1)
+http://irishost:8081/csp/bin/Systems/Module.cxw      (via webgw2)
+http://irishost/csp/bin/Systems/Module.cxw           (via NGINX, primary member)
+
+system management portal
+http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen  (via built-in apache for mirrorA)
+http://irishost:9093/csp/sys/%25CSP.Portal.Home.zen  (via built-in apache for mirrorB)
+http://irishost:8080/csp/sys/%25CSP.Portal.Home.zen  (via webgw1, primary member)
+http://irishost:8081/csp/sys/%25CSP.Portal.Home.zen  (via webgw2, primary member)
+http://irishost/csp/sys/%25CSP.Portal.Home.zen       (via NGINX, primary member)
+Only NGINX Plus (not free) has Active Health Checks ability. So it's passive (meaning not using mirror_status.cxw).
+
+REST APIs
+http://irishost:9092/api/mgmnt/ -u SuperUser:SYS  (via built-in apache for mirrorA)
+http://irishost:9093/api/mgmnt/ -u SuperUser:SYS  (via built-in apache for mirrorB)
+http://irishost:8080/api/mgmnt/ -u SuperUser:SYS  (via webgw1, primary member)
+http://irishost:8081/api/mgmnt/ -u SuperUser:SYS  (via webgw2, primary member)
+http://irishost/api/mgmnt/ -u SuperUser:SYS       (via NGINX, primary member)
+
+Health Check for NGINX(LB) (with mirror aware webgw, you probably don't need this)
+http://irishost:8080/csp/a/mirror_status.cxw    (via webgw1, mirrorA)
+http://irishost:8080/csp/b/mirror_status.cxw    (via webgw1, mirrorB)
+http://irishost:8081/csp/a/mirror_status.cxw    (via webgw2, mirrorA)
+http://irishost:8081/csp/b/mirror_status.cxw    (via webgw2, mirrorB)
 
 
+------------------
+App REST
+## MirrorA:Primary, MirrorB:Backup 
+$ curl http://irishost:8080/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorA",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:17:09",
+  "ImageBuilt": ""
+}
+$ curl http://irishost:8081/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorA",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:17:35",
+  "ImageBuilt": ""
+}
+$ curl http://localhost/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorA",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:17:40",
+  "ImageBuilt": ""
+}
+
+## MirrorA:Stop, MirrorB:Primary 
+$ docker-compose stop mirrorA
+$ curl http://irishost:8080/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorB",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:18:22",
+  "ImageBuilt": ""
+}
+$ curl http://irishost:8081/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorB",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:18:29",
+  "ImageBuilt": ""
+}
+$ curl http://localhost/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorB",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:18:34",
+  "ImageBuilt": ""
+}
+## MirrorA:Stop, MirrorB:Primary, webgw1:Stop, webgw2:Alive
+
+$ docker-compose stop webgw1
+Stopping webgw ... done
+$ curl http://irishost:8080/csp/mirrorns/get -u SuperUser:SYS
+curl: (7) Failed to connect to localhost port 8080: 接続を拒否されました
+$ curl http://irishost:8081/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorB",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:20:05",
+  "ImageBuilt": ""
+}
+$ curl http://localhost/csp/mirrorns/get -u SuperUser:SYS -s | jq
+{
+  "HostName": "mirrorB",
+  "UserName": "SuperUser",
+  "Status": "OK",
+  "TimeStamp": "02/24/2021 15:20:32",
+  "ImageBuilt": ""
+}
+
+------------------
 HealthCheck endpoints and their behaivor. These are what LB will see.
-$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
+http://irishost:8080/csp/a/mirror_status.cxw    (via webgw1, mirrorA)
+http://irishost:8080/csp/b/mirror_status.cxw    (via webgw1, mirrorB)
+http://irishost:8081/csp/a/mirror_status.cxw    (via webgw2, mirrorA)
+http://irishost:8081/csp/b/mirror_status.cxw    (via webgw2, mirrorB)
+
+
+$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/csp/a/mirror_status.cxw -v
+< HTTP/1.1 200 OK
+SUCCESS
+$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/csp/b/mirror_status.cxw -v
+< HTTP/1.1 503 Service Unavailable
+FALIED
+
+$ docker-compose exec mirrorA iris stop iris quietly
+$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
 
-Let's abuse to see what happens.
-$ curl -m 5 http://localhost/csp/a/mirror_status.cxw?[1-20]
+$ docker-compose exec mirrorA iris start iris quietly
+$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
+< HTTP/1.1 503 Service Unavailable
+FAILED
+
+$ docker-compose exec mirrorB iris stop iris quietly
+$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
+< HTTP/1.1 200 OK
+SUCCESS
+
+$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
+curl: (28) Operation timed out after 5000 milliseconds with 0 bytes received
+
+
+Let's abuse to see nothing wrong happens.
+$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw?[1-20]
 
 If you see lots of [Status=Server], disable it.
 [SYSTEM]
 REGISTRY_METHODS=Disabled
 https://wrc.intersystems.com/wrc/ProblemViewTabs.csp?OBJID=903951
 
-$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
-< HTTP/1.1 503 Service Unavailable
-FAILED
-
-$ docker-compose exec mirrorA iris stop iris quietly
-$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
-< HTTP/1.1 200 OK
-SUCCESS
-
-$ docker-compose exec mirrorA iris start iris quietly
-$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
-< HTTP/1.1 503 Service Unavailable
-FAILED
-
-$ docker-compose exec mirrorB iris stop iris quietly
-$ curl -m 5 http://localhost/csp/a/mirror_status.cxw -v
-< HTTP/1.1 200 OK
-SUCCESS
-
-$ curl -m 5 http://localhost/csp/b/mirror_status.cxw -v
-curl: (28) Operation timed out after 5000 milliseconds with 0 bytes received
-
 ------
 
-Ny tests to see if Virtual IP is available or not... I guess not.
+My tests to see if Virtual IP is available in container or not... I guess not.
 
 root@mirrorA:/home/irisowner# apt-get update
 root@mirrorA:/home/irisowner# apt-get install -y arping

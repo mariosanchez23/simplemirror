@@ -51,6 +51,7 @@ services:
       - ./irisB:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
+      - ./project:/project
       - ./uploadB:/home/irisowner/upload
     environment:
       - ISC_DATA_DIRECTORY=/ISC/install
@@ -84,11 +85,14 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.10
 
-  webgw:
+  webgw1:
     container_name: webgw
     hostname: webgw
     image: *WEBGW_IMAGE
     init: true    
+    depends_on:
+      - mirrorA
+      - mirrorB
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
@@ -98,10 +102,51 @@ services:
       - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       arbiter-tier:
         ipv4_address: 10.0.100.11
+
+  webgw2:
+    container_name: webgw2
+    hostname: webgw2
+    image: *WEBGW_IMAGE
+    init: true    
+    depends_on:
+      - mirrorA
+      - mirrorB
+    environment:
+      - TZ=JST-9
+      - CONFIG_NAME=MIRRORA
+      - SERVER_HOST=10.0.100.2
+      - SERVER_PORT=1972
+      - CONFIG_NAME2=MIRRORB
+      - SERVER_HOST2=10.0.100.3
+      - SERVER_PORT2=1972
+    ports:
+      - "8081:80"
+    networks:
+      arbiter-tier:
+        ipv4_address: 10.0.100.12
+
+  nginx:
+    hostname: nginx
+    container_name: nginx
+    image: nginx
+    init: true
+    depends_on:
+      - webgw1
+      - webgw2
+    environment:
+      - TZ=JST-9
+    volumes:
+    - ./nginx-conf/nginx.conf:/etc/nginx/nginx.conf
+    - ./nginx-conf/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      arbiter-tier:
+        ipv4_address: 10.0.100.13
 
 networks:
   iris-tier:
