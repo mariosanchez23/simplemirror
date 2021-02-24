@@ -40,18 +40,26 @@ port4=${SERVER_PORT4-51773}
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM]" "REGISTRY_METHODS" "Disabled"
 
 # [SYSTEM_INDEX]
-./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "MIRROR" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "MIRROR1" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "MIRROR2" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName2" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName3" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName4" "Enabled"
 
-# [MIRROR]
-./cvtcfg setparameter "CSP.ini" "[MIRROR]" "Ip_Address" "$host"
-./cvtcfg setparameter "CSP.ini" "[MIRROR]" "TCP_Port" "$port"
-./cvtcfg setparameter "CSP.ini" "[MIRROR]" "Username" "$username"
-./cvtcfg setparameter "CSP.ini" "[MIRROR]" "Password" "$password"
-./cvtcfg setparameter "CSP.ini" "[MIRROR]" "Mirror_Aware" "1"
+# [MIRROR1]
+./cvtcfg setparameter "CSP.ini" "[MIRROR1]" "Ip_Address" "$host"
+./cvtcfg setparameter "CSP.ini" "[MIRROR1]" "TCP_Port" "$port"
+./cvtcfg setparameter "CSP.ini" "[MIRROR1]" "Username" "$username"
+./cvtcfg setparameter "CSP.ini" "[MIRROR1]" "Password" "$password"
+./cvtcfg setparameter "CSP.ini" "[MIRROR1]" "Mirror_Aware" "1"
+
+# [MIRROR2]
+./cvtcfg setparameter "CSP.ini" "[MIRROR2]" "Ip_Address" "$host3"
+./cvtcfg setparameter "CSP.ini" "[MIRROR2]" "TCP_Port" "$port3"
+./cvtcfg setparameter "CSP.ini" "[MIRROR2]" "Username" "$username"
+./cvtcfg setparameter "CSP.ini" "[MIRROR2]" "Password" "$password"
+./cvtcfg setparameter "CSP.ini" "[MIRROR2]" "Mirror_Aware" "1"
 
 # [$configName]
 ./cvtcfg setparameter "CSP.ini" "[${configName}]" "Ip_Address" "$host"
@@ -80,24 +88,30 @@ port4=${SERVER_PORT4-51773}
 # [APP_PATH_INDEX]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp" "Enabled"
-./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp/ap1/a" "Enabled"
-./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp/ap1/b" "Enabled"
-./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp/ap2/a" "Enabled"
-./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp/ap2/b" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap1" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap2" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap1a" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap1b" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap2a" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/ap2b" "Enabled"
 
 # [APP_PATH:/]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/]" "Default_Server" "MIRROR"
-
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/]" "Default_Server" "LOCAL"
 # [APP_PATH:/csp]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp]" "Default_Server" "MIRROR"
-# [APP_PATH:/csp/ap1/a]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp/ap1/a]" "Default_Server" "$configName"
-# [APP_PATH:/csp/ap1/b]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp/ap1/b]" "Default_Server" "$configName2"
-# [APP_PATH:/csp/ap2/a]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp/ap2/a]" "Default_Server" "$configName3"
-# [APP_PATH:/csp/ap2/b]
-./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp/ap2/b]" "Default_Server" "$configName4"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/csp]" "Default_Server" "LOCAL"
+
+# [APP_PATH:/ap1]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap1]" "Default_Server" "MIRROR1"
+# [APP_PATH:/ap2]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap2]" "Default_Server" "MIRROR2"
+# [APP_PATH:/ap1a]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap1a]" "Default_Server" "$configName"
+# [APP_PATH:/ap1b]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap1b]" "Default_Server" "$configName2"
+# [APP_PATH:/ap2a]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap2a]" "Default_Server" "$configName3"
+# [APP_PATH:/ap2b]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/ap2b]" "Default_Server" "$configName4"
 
 popd
 

@@ -108,6 +108,7 @@ ClassMethod createMirrorDB() As %Status
     do $system.OBJ.DisplayError(rc)
     quit rc
   }
+  // Enables production
   Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
     
   Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)

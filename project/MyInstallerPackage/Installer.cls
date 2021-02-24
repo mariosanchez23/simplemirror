@@ -82,6 +82,9 @@ ClassMethod setup2(ByRef tVars) As %Status
 	Set tSC = ##Class(Security.Applications).Modify(webapp,.props)
 	$$$ThrowOnError(tSC)
 
+	#; accept mutiple names as application path, such as "ap1, ap1a".
+	#; See https://docs.intersystems.com/irislatest/csp/docbook/Doc.View.cls?KEY=GCGI_remote_csp#GCGI_change_server_name
+	Do $System.CSP.SetConfig("CSPConfigName",$SYSTEM.Util.GetEnviron("CSPConfigName"))
 	Set $NAMESPACE=oldns
 	
   Return tSC

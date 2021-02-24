@@ -7,15 +7,15 @@ x-var: &WEBGW_IMAGE
   "iris-webgateway-example_web:latest"
 
 services:
-  mirrorA:
-    container_name: mirrorA
-    hostname: mirrorA
+  ap1a:
+    container_name: ap1a
+    hostname: ap1a
     image: *IRIS_IMAGE
     init: true    
     depends_on:
       - arbiter
     volumes:
-      - ./irisA:/ISC
+      - ./iris1A:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
@@ -39,16 +39,16 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.2   
 
-  mirrorB:
-    container_name: mirrorB
-    hostname: mirrorB
+  ap1b:
+    container_name: ap1b
+    hostname: ap1b
     image: *IRIS_IMAGE
     init: true    
     depends_on:
-      - mirrorA
+      - ap1a
       - arbiter
     volumes:
-      - ./irisB:/ISC
+      - ./iris1B:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
@@ -91,20 +91,20 @@ services:
     image: *WEBGW_IMAGE
     init: true    
     depends_on:
-      - mirrorA
-      - mirrorB
+      - ap1a
+      - ap1b
     environment:
       - TZ=JST-9
-      - CONFIG_NAME=AP1A
+      - CONFIG_NAME=ap1a
       - SERVER_HOST=10.0.100.2
       - SERVER_PORT=1972
-      - CONFIG_NAME2=AP1B
+      - CONFIG_NAME2=ap1b
       - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
-      - CONFIG_NAME3=AP2A
+      - CONFIG_NAME3=ap2a
       - SERVER_HOST3=10.0.100.4
       - SERVER_PORT3=1972
-      - CONFIG_NAME4=AP2B
+      - CONFIG_NAME4=ap2b
       - SERVER_HOST4=10.0.100.5
       - SERVER_PORT4=1972
     ports:
@@ -119,20 +119,20 @@ services:
     image: *WEBGW_IMAGE
     init: true    
     depends_on:
-      - mirrorA
-      - mirrorB
+      - ap1a
+      - ap1b
     environment:
       - TZ=JST-9
-      - CONFIG_NAME=AP1A
+      - CONFIG_NAME=ap1a
       - SERVER_HOST=10.0.100.2
       - SERVER_PORT=1972
-      - CONFIG_NAME2=AP1B
+      - CONFIG_NAME2=ap1b
       - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
-      - CONFIG_NAME3=AP2A
+      - CONFIG_NAME3=ap2a
       - SERVER_HOST3=10.0.100.4
       - SERVER_PORT3=1972
-      - CONFIG_NAME4=AP2B
+      - CONFIG_NAME4=ap2b
       - SERVER_HOST4=10.0.100.5
       - SERVER_PORT4=1972
     ports:
