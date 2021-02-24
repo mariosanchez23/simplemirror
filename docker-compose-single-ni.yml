@@ -92,10 +92,10 @@ services:
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
-      - SERVER_HOST=mirrorA
+      - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
       - CONFIG_NAME2=MIRRORB
-      - SERVER_HOST2=mirrorB
+      - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
     ports:
       - "8080:80"
@@ -114,10 +114,10 @@ services:
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
-      - SERVER_HOST=mirrorA
+      - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
       - CONFIG_NAME2=MIRRORB
-      - SERVER_HOST2=mirrorB
+      - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
     ports:
       - "8081:80"
