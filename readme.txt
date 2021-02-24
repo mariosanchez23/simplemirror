@@ -79,11 +79,11 @@ $ docker-compose exec mirrorA iris list
 # Web endpoints
 
 web g/w portal
-http://irishost:9092/csp/bin/Systems/Module.cxw      (via built-in apache for mirrorA) ->You are not authorized to use this facility
-http://irishost:9093/csp/bin/Systems/Module.cxw      (via built-in apache for mirrorB) ->You are not authorized to use this facility
-http://irishost:8080/csp/bin/Systems/Module.cxw      (via webgw1)
-http://irishost:8081/csp/bin/Systems/Module.cxw      (via webgw2)
-http://irishost/csp/bin/Systems/Module.cxw           (via NGINX, primary member)
+http://irishost:9092/csp/bin/Systems/Module.cxw      (built-in apache for mirrorA) ->You are not authorized to use this facility
+http://irishost:9093/csp/bin/Systems/Module.cxw      (built-in apache for mirrorB) ->You are not authorized to use this facility
+http://irishost:8080/csp/bin/Systems/Module.cxw      (webgw1)
+http://irishost:8081/csp/bin/Systems/Module.cxw      (webgw2)
+http://irishost/csp/bin/Systems/Module.cxw           (via NGINX to webgw1 or webgw2)-> Don't use
 
 system management portal
 http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen  (via built-in apache for mirrorA)
@@ -101,11 +101,10 @@ http://irishost:8081/api/mgmnt/ -u SuperUser:SYS  (via webgw2, primary member)
 http://irishost/api/mgmnt/ -u SuperUser:SYS       (via NGINX, primary member)
 
 Health Check for NGINX(LB) (with mirror aware webgw, you probably don't need this)
-http://irishost:8080/csp/a/mirror_status.cxw    (via webgw1, mirrorA)
-http://irishost:8080/csp/b/mirror_status.cxw    (via webgw1, mirrorB)
-http://irishost:8081/csp/a/mirror_status.cxw    (via webgw2, mirrorA)
-http://irishost:8081/csp/b/mirror_status.cxw    (via webgw2, mirrorB)
-
+http://irishost:8080/csp/ap1/a/mirror_status.cxw    (via webgw1, mirrorA)
+http://irishost:8080/csp/ap1/b/mirror_status.cxw    (via webgw1, mirrorB)
+http://irishost:8081/csp/ap1/a/mirror_status.cxw    (via webgw2, mirrorA)
+http://irishost:8081/csp/ap1/b/mirror_status.cxw    (via webgw2, mirrorB)
 
 ------------------
 App REST
@@ -186,42 +185,38 @@ $ curl http://localhost/csp/mirrorns/get -u SuperUser:SYS -s | jq
 
 ------------------
 HealthCheck endpoints and their behaivor. These are what LB will see.
-http://irishost:8080/csp/a/mirror_status.cxw    (via webgw1, mirrorA)
-http://irishost:8080/csp/b/mirror_status.cxw    (via webgw1, mirrorB)
-http://irishost:8081/csp/a/mirror_status.cxw    (via webgw2, mirrorA)
-http://irishost:8081/csp/b/mirror_status.cxw    (via webgw2, mirrorB)
 
 
-$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
-$ curl -m 5 http://irishost:8081/csp/a/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/a/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/csp/ap1/a/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
-$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
-$ curl -m 5 http://irishost:8081/csp/b/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/b/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/csp/ap1/b/mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FALIED
 
 $ docker-compose exec mirrorA iris stop iris quietly
-$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/b/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
 
 $ docker-compose exec mirrorA iris start iris quietly
-$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/a/mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FAILED
 
 $ docker-compose exec mirrorB iris stop iris quietly
-$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/a/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
 
-$ curl -m 5 http://irishost:8080/csp/b/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/csp/ap1/b/mirror_status.cxw -v
 curl: (28) Operation timed out after 5000 milliseconds with 0 bytes received
 
 
 Let's abuse to see nothing wrong happens.
-$ curl -m 5 http://irishost:8080/csp/a/mirror_status.cxw?[1-20]
+$ curl -m 5 http://irishost:8080/csp/ap1/a/mirror_status.cxw?[1-20]
 
 If you see lots of [Status=Server], disable it.
 [SYSTEM]

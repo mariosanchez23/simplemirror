@@ -91,12 +91,18 @@ services:
       - mirrorB
     environment:
       - TZ=JST-9
-      - CONFIG_NAME=MIRRORA
+      - CONFIG_NAME=AP1A
       - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
-      - CONFIG_NAME2=MIRRORB
+      - CONFIG_NAME2=AP1B
       - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
+      - CONFIG_NAME3=AP2A
+      - SERVER_HOST3=10.1.1.4
+      - SERVER_PORT3=1972
+      - CONFIG_NAME4=AP2B
+      - SERVER_HOST4=10.1.1.5
+      - SERVER_PORT4=1972
     ports:
       - "8080:80"
     networks:
@@ -113,12 +119,18 @@ services:
       - mirrorB
     environment:
       - TZ=JST-9
-      - CONFIG_NAME=MIRRORA
+      - CONFIG_NAME=AP1A
       - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
-      - CONFIG_NAME2=MIRRORB
+      - CONFIG_NAME2=AP1B
       - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
+      - CONFIG_NAME3=AP2A
+      - SERVER_HOST3=10.1.1.4
+      - SERVER_PORT3=1972
+      - CONFIG_NAME4=AP2B
+      - SERVER_HOST4=10.1.1.5
+      - SERVER_PORT4=1972
     ports:
       - "8081:80"
     networks:
