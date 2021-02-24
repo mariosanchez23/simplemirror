@@ -49,6 +49,7 @@ services:
       - ./irisB:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
+      - ./project:/project
       - ./uploadB:/home/irisowner/upload
     environment:
       - ISC_DATA_DIRECTORY=/ISC/install
@@ -85,6 +86,9 @@ services:
     hostname: webgw1
     image: *WEBGW_IMAGE
     init: true    
+    depends_on:
+      - mirrorA
+      - mirrorB
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
@@ -104,6 +108,9 @@ services:
     hostname: webgw2
     image: *WEBGW_IMAGE
     init: true    
+    depends_on:
+      - mirrorA
+      - mirrorB
     environment:
       - TZ=JST-9
       - CONFIG_NAME=MIRRORA
@@ -117,6 +124,24 @@ services:
     networks:
       iris-tier:
         ipv4_address: 10.1.100.12
+  nginx:
+    hostname: nginx
+    container_name: nginx
+    image: nginx
+    init: true
+    depends_on:
+      - webgw1
+      - webgw2
+    environment:
+      - TZ=JST-9
+    volumes:
+    - ./nginx-conf/nginx.conf:/etc/nginx/nginx.conf
+    - ./nginx-conf/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      iris-tier:
+        ipv4_address: 10.1.100.13
 
 networks:
   iris-tier:
