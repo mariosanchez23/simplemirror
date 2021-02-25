@@ -229,6 +229,21 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.13
 
+  haproxy:
+    hostname: haproxy
+    container_name: haproxy
+    image: haproxy:2.3.5
+    init: true
+    environment:
+      - TZ=JST-9
+    volumes:
+    - ./haproxy-conf/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - "1972:1972"
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.6
+
 networks:
   iris-tier:
     driver: bridge
