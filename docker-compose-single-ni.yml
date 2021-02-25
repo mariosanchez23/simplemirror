@@ -36,7 +36,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.1.1.2    
+        ipv4_address: 10.1.1.2
 
   ap1b:
     container_name: ap1b
@@ -99,7 +99,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.1.1.4    
+        ipv4_address: 10.1.1.4
 
   ap2b:
     container_name: ap2b

@@ -1,3 +1,5 @@
+# Documentation in English is work in progress
+Documentation in English is still work in progress and outdated somehow.
 # About
 This is a No VIP mirror configuration.
 (VIP dosen't work in container anyway.)

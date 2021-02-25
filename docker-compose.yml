@@ -27,6 +27,7 @@ services:
       - ARBITER_ip=10.0.100.10
       - MirrorAddress_ip=10.0.1.2
       - ECPAddress_ip=10.0.100.2
+      - CSPConfigName=ap1,ap1a
       - TZ=JST-9
     ports:
       - "9092:52773"
@@ -35,9 +36,9 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.2    
+        ipv4_address: 10.0.1.2
       arbiter-tier:
-        ipv4_address: 10.0.100.2   
+        ipv4_address: 10.0.100.2
 
   ap1b:
     container_name: ap1b
@@ -60,6 +61,7 @@ services:
       - primaryAgentAddress_ip=10.0.1.2
       - MirrorAddress_ip=10.0.1.3
       - ECPAddress_ip=10.0.100.3
+      - CSPConfigName=ap1,ap1b
       - TZ=JST-9
     ports:
       - "9093:52773"
@@ -68,9 +70,76 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.3    
+        ipv4_address: 10.0.1.3
       arbiter-tier:
         ipv4_address: 10.0.100.3    
+
+  ap2a:
+    container_name: ap2a
+    hostname: ap2a
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - arbiter
+    volumes:
+      - ./iris2A:/ISC
+      - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./project:/project
+      - ./uploadA:/home/irisowner/upload
+    environment:
+      - ISC_DATA_DIRECTORY=/ISC/install
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=mirrorA
+      - ARBITER_ip=10.0.100.10
+      - MirrorAddress_ip=10.0.1.4
+      - ECPAddress_ip=10.0.100.4
+      - CSPConfigName=ap2,ap2a
+      - TZ=JST-9
+    ports:
+      - "9094:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -a /ISC/utiles/installer.sh
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.4
+      arbiter-tier:
+        ipv4_address: 10.0.100.4
+
+  ap2b:
+    container_name: ap2b
+    hostname: ap2b
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - ap2a
+      - arbiter
+    volumes:
+      - ./iris2B:/ISC
+      - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./project:/project
+      - ./uploadB:/home/irisowner/upload
+    environment:
+      - ISC_DATA_DIRECTORY=/ISC/install
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=mirrorB
+      - primaryAgentAddress_ip=10.0.1.4
+      - MirrorAddress_ip=10.0.1.5
+      - ECPAddress_ip=10.0.100.5
+      - CSPConfigName=ap2,ap2b
+      - TZ=JST-9
+    ports:
+      - "9095:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -a /ISC/utiles/installer.sh
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.5
+      arbiter-tier:
+        ipv4_address: 10.0.100.5
 
   arbiter:
     container_name: arbiter
