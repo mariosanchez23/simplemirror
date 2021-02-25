@@ -41,7 +41,7 @@ $ ./start-single-bridge.sh   (mimics typical cloud env where you have only one N
 - 各コンテナは、ポート番号が重複しないように、ポートを変更してホストO/Sにエンドポイントを公開しています。  
 - 各コンテナ要素をAWSの要素に置き換えて考えることができます。その場合、docker-composeはVPC環境、ホストO/Sはインターネットに相当すると考えます。
 
-[構成図](https://github.com/IRISMeister/doc-images/blob/main/simplemirror/diagram.png)
+![構成図](https://github.com/IRISMeister/doc-images/blob/main/simplemirror/diagram.png)
 
 # Web endpoints
 Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINXの計7台)存在するため、多数のエンドポイントが用意されますが、主たる用途を考慮すると使用に適したものは限定されます。
