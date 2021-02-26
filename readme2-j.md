@@ -22,6 +22,7 @@ $ ./start.sh
 or
 $ ./start-single-bridge.sh   (mimics typical cloud env where you have only one NIC)
 ```
+> docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
 
 # コンテナ群
 起動すると、下記のコンテナ群を起動します。
@@ -283,5 +284,27 @@ Web gateway management portalで[Status=Server]が[複数発生](https://www.int
 ```
 [SYSTEM]
 REGISTRY_METHODS=Disabled
+```
+
+# HAPROXY
+各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
+
+|IRISクラスタ|バックエンド|フロントエンド|備考|
+|:--|:--|:--|:--|
+|ap1|ap1a:1972,ap1b:1972|irishost:1972||
+|ap2|ap2a:1972,ap2b:1972|irishost:11972||
 
 ```
+$ docker-compose logs -f haproxy
+haproxy    | [WARNING] 056/112355 (9) : Server iris2/ap2a is UP, reason: External check passed, code: 0, check duration: 43ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+haproxy    | [WARNING] 056/112356 (9) : Server iris1/ap1a is UP, reason: External check passed, code: 0, check duration: 52ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+```
+
+例えば、次のJDBC接続で、SQLクエリを実行できます。
+```
+jdbc:IRIS://irishost:1972/mirrorns  (ap1のプライマリメンバ)  
+jdbc:IRIS://irishost:11972/mirrorns (ap2のプライマリメンバ)  
+select * from User_Report.Record
+```
+
+

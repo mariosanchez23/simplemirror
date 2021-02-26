@@ -6,5 +6,5 @@ docker-compose -f docker-compose-single-bridge.yml exec -T ap2a bash -c "\$ISC_P
 # join backups
 docker-compose -f docker-compose-single-bridge.yml up -d ap1b ap2b
 # webgws and LB
-docker-compose -f docker-compose-single-bridge.yml up -d webgw1 webgw2 nginx
+docker-compose -f docker-compose-single-bridge.yml up -d webgw1 webgw2 nginx haproxy
 docker-compose -f docker-compose-single-bridge.yml ps

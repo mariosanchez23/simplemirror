@@ -151,9 +151,6 @@ services:
     hostname: webgw1
     image: *WEBGW_IMAGE
     init: true    
-    depends_on:
-      - ap1a
-      - ap1b
     environment:
       - TZ=JST-9
       - CONFIG_NAME=ap1a
@@ -179,9 +176,6 @@ services:
     hostname: webgw2
     image: *WEBGW_IMAGE
     init: true    
-    depends_on:
-      - ap1a
-      - ap1b
     environment:
       - TZ=JST-9
       - CONFIG_NAME=ap1a
@@ -221,20 +215,24 @@ services:
         ipv4_address: 10.1.100.13
 
   haproxy:
+    # need to build this image to add curl for external check
+    build:
+      context: ./haproxy
     hostname: haproxy
     container_name: haproxy
-    image: haproxy:2.3.5
     init: true
     environment:
       - TZ=JST-9
     volumes:
     - ./haproxy-conf/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    - ./haproxy-conf/check.sh:/usr/local/etc/haproxy/check.sh
     ports:
       - "1972:1972"
+      - "11972:11972"
     networks:
       iris-tier:
         ipv4_address: 10.1.100.14
-  
+
 networks:
   iris-tier:
     driver: bridge

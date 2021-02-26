@@ -6,5 +6,5 @@ docker-compose exec -T ap2a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/wait
 # join backups
 docker-compose up -d ap1b ap2b
 # webgws and LB
-docker-compose up -d webgw1 webgw2 nginx
+docker-compose up -d webgw1 webgw2 nginx haproxy
 docker-compose ps
