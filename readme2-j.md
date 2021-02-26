@@ -23,6 +23,7 @@ or
 $ ./start-single-bridge.sh   (mimics typical cloud env where you have only one NIC)
 ```
 > docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
+> また、特定のコンポーネントの起動・停止状態を実現したいので、意図的に依存性をはずしています。
 
 # コンテナ群
 起動すると、下記のコンテナ群を起動します。
