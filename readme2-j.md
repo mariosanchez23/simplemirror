@@ -20,7 +20,7 @@ $ cd ../simplemirror
 $ cp ミラーが有効なx64コンテナ用のライセンスキー ./iris.key
 $ ./start.sh
 or
-$ ./start-single-bridge.sh   (mimics typical cloud env where you have only one NIC)
+$ ./start-single-bridge.sh   (単一のNICのみで構成される環境)
 ```
 > docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
 > また、特定のコンポーネントの起動・停止状態を実現したいので、意図的に依存性をはずしています。
@@ -61,7 +61,7 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |Web Gateway#2|http://irishost:8081/csp/bin/Systems/Module.cxw||
 |NGINX|http://irishost/csp/bin/Systems/Module.cxw|本用途に不向き|
 
-## system management portal
+## 管理ポータル
 
 |要素|エンドポイント|備考|
 |:--|:--|:--|
@@ -77,12 +77,12 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |Web Gateway#2|http://irishost:8081/ap1b/csp/sys/%25CSP.Portal.Home.zen|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/csp/sys/%25CSP.Portal.Home.zen|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/csp/sys/%25CSP.Portal.Home.zen|AP2B|
-|Web Gateway#1|http://irishost:8080/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1クラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#1|http://irishost:8080/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2クラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#2|http://irishost:8081/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1クラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#2|http://irishost:8081/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2クラスタのプライマリメンバ,本用途に不向き|
+|Web Gateway#1|http://irishost:8080/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1ミラークラスタのプライマリメンバ,本用途に不向き|
+|Web Gateway#1|http://irishost:8080/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2ミラークラスタのプライマリメンバ,本用途に不向き|
+|Web Gateway#2|http://irishost:8081/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1ミラークラスタのプライマリメンバ,本用途に不向き|
+|Web Gateway#2|http://irishost:8081/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2ミラークラスタのプライマリメンバ,本用途に不向き|
 
-## IRIS provided REST APIs
+## IRIS提供の管理用REST API
 
 |要素|エンドポイント|備考|
 |:--|:--|:--|
@@ -98,10 +98,10 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |Web Gateway#2|http://irishost:8081/ap1b/api/mgmnt/|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/api/mgmnt/|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/api/mgmnt/|AP2B|
-|Web Gateway#1|http://irishost:8080/ap1/api/mgmnt/ |AP1クラスタのプライマリメンバ,用途次第|
-|Web Gateway#1|http://irishost:8080/ap2/api/mgmnt/ |AP2クラスタのプライマリメンバ,用途次第|
-|Web Gateway#2|http://irishost:8081/ap1/api/mgmnt/ |AP1クラスタのプライマリメンバ,用途次第|
-|Web Gateway#2|http://irishost:8081/ap2/api/mgmnt/|AP2クラスタのプライマリメンバ,用途次第|
+|Web Gateway#1|http://irishost:8080/ap1/api/mgmnt/ |AP1ミラークラスタのプライマリメンバ,用途次第|
+|Web Gateway#1|http://irishost:8080/ap2/api/mgmnt/ |AP2ミラークラスタのプライマリメンバ,用途次第|
+|Web Gateway#2|http://irishost:8081/ap1/api/mgmnt/ |AP1ミラークラスタのプライマリメンバ,用途次第|
+|Web Gateway#2|http://irishost:8081/ap2/api/mgmnt/|AP2ミラークラスタのプライマリメンバ,用途次第|
 
 - アクセス時には認証が必要です
 ```
@@ -121,26 +121,33 @@ $ curl http://irishost:9092/api/mgmnt/ -u SuperUser:SYS -s | jq
 |Web Gateway#2|http://irishost:8081/ap2a/csp/mirror_status.cxw|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/csp/mirror_status.cxw|AP2B|
 
-## App end point
-
+## ユーザ作成のRESTアプリケーション
+下記のエンドポイントに、IRISホストの情報をJSONで返却する簡単なRESTアプリケーションを用意してあります。
 |要素|エンドポイント|備考|
 |:--|:--|:--|
-|Web Gateway#1|http://irishost/ap1/csp/mirrorns/get|AP1クラスタのプライマリメンバ|
-|Web Gateway#2|http://irishost/ap2/csp/mirrorns/get|AP2クラスタのプライマリメンバ|
+|Web Gateway#1|http://irishost/ap1/csp/mirrorns/get|AP1ミラークラスタのプライマリメンバ|
+|Web Gateway#2|http://irishost/ap2/csp/mirrorns/get|AP2ミラークラスタのプライマリメンバ|
 
 - アクセス時には認証が必要です
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 ```
 
-# Health Checkの振る舞い
+# 動作確認
 各ミラーの状態に置けるHealth Checkの応答は下記のようになります。  
 注意) Active Health Checksは有償のNGINX Plusのみで提供されているので、動作はPassiveになります。
-> つまり、mirror_status.cxwは使用していません。  
-(要確認)InterSystems API Manager (KONG)には Active Health Check機能が含まれています。
+> つまり、本例のNGINXはmirror_status.cxwは使用していません。  
+InterSystems API Managerには Active Health Check機能が含まれています。
+
+## 事前準備
+もし、この時点でなんらかのアクセスを行っている場合、状態をリセットするために、いったん全コンテナの停止・起動を実行します。
+```
+$ ./stop.sh
+$ ./start.sh
+```
 
 ## ap1a:Primary, ap1b:Backup 
-起動直後の状態です。
+起動直後の状態でのHealth Checkの応答は以下の通りです。  
 ```
 $ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw -v
 $ curl -m 5 http://irishost:8081/ap1a/csp//mirror_status.cxw -v
@@ -151,7 +158,7 @@ $ curl -m 5 http://irishost:8081/ap1b/csp//mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FALIED
 ```
-アプリケーションに見立てた下記のAPIコールで、リクエストがap1a(AP1クラスタのプライマリメンバ)、ap2a(AP2クラスタのプライマリメンバ)に到達していることが確認できます。
+アプリケーションに見立てた下記のAPIコールで、リクエストがap1a(AP1ミラークラスタのプライマリメンバ)、ap2a(AP2ミラークラスタのプライマリメンバ)に到達していることが確認できます。
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 {
@@ -170,9 +177,37 @@ $ curl http://irishost/ap2/csp/mirrorns/get -u SuperUser:SYS -s | jq
   "ImageBuilt": ""
 }
 ```
+NGINXのログは下記のようになっているはずです。10.0.100.11:80(Web Gateway #1),10.0.100.12:80(Web Gateway #2)が交互に使用されています。
+```
+$ docker-compose logs -f nginx
+nginx      | 10.0.100.1 - SuperUser [dd/mmm/yyyy:hh:mm:ss +0900] "GET /ap1/csp/mirrorns/get HTTP/1.1" 200 117 "-" "curl/7.58.0" "-" "10.0.100.11:80"
+nginx      | 10.0.100.1 - SuperUser [dd/mmm/yyyy:hh:mm:ss +0900] "GET /ap2/csp/mirrorns/get HTTP/1.1" 200 117 "-" "curl/7.58.0" "-" "10.0.100.12:80"
+```
+
+2台のWebgatewayに、全ミラー構成(2セット)を認識させるために、下記を再実行します。
+```
+$ curl http://irishost/ap1/csp/mirrorns/get?[1-2] -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap2/csp/mirrorns/get?[1-2] -u SuperUser:SYS -s | jq
+```
+この段階で、Web gateway management portalのSystem Status画面を確認します。
+- http://irishost:8080/csp/bin/Systems/Module.cxw
+- http://irishost:8081/csp/bin/Systems/Module.cxw
+
+いずれも、下記の状態(MIRROR1,MIRROR2のPrimary/Failoverを認識している,n1~n4は数値)になっている事を確認します。ServerNameに下記以外のものが存在しても問題ありません。
+
+|ServerNumber|ServerName|MirrorMember|MirrorStatus|
+|:--|:--|:--|:--|
+|n1|MIRROR1|MIRRORSET:MIRRORA|Primary|
+|n2|MIRROR1|MIRRORSET:MIRRORB|Failover|
+|n3|MIRROR2|MIRRORSET:MIRRORA|Primary|
+|n4|MIRROR2|MIRRORSET:MIRRORB|Failover|
+
+この状態になっていない場合、以後の動作は記載と異なったものとなります。
 
 ## ap1a:down, ap1b:Primary
-ap1aのIRISを停止して、ap1bをプライマリに昇格させます。
+ap1aのIRISを停止して、ap1bをプライマリに昇格させた後にHealth Checkの応答を確認します。  
+ap1aが応答しなくなったため、curlでtimeout(5秒)が発生しました。  
+Active Healthcheckが利用できる環境であれば、この接続は無効にマークされます)
 ```
 $ docker-compose exec ap1a iris stop iris quietly
 $ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
@@ -181,7 +216,7 @@ $ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
 ```
-ap1aが応答しなくなったため、curlでtimeout(5秒)が発生しました。(Active Healthcheckであれば、この接続を無効にマークします)
+アプリケーションへのAPIコールはで、ap1b(プライマリに昇格した元バックアップメンバ)に到達していることが確認できます。
 
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
@@ -193,10 +228,10 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
   "ImageBuilt": ""
 }
 ```
-期待通り、アプリケーションはap1bに到達しています。
 
 ## ap1a:down, ap1b:down
-ap1ミラークラスタの全IRISメンバを停止状態にします。
+ap1ミラークラスタの全IRISメンバを停止状態にします。  
+誰も応答しないので、curlでtimeout(5秒)が発生しました。
 ```
 $ docker-compose exec ap1b iris stop iris quietly
 $ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
@@ -204,7 +239,8 @@ curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 $ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
-誰も応答しないので、curlでtimeout(5秒)が発生しました。
+
+curlのタイムアウトを設定しない場合、Webの設定値次第ですが、どこかでタイムアウトが発生します。今回のケースでは、Web Gateway#2がタイムアウトしました。その後、NGINXがWeb gateway #1をトライしましたが、そちらもタイムアウトを起こしたので、最終的にNGINXからcurlにエラー(504 Gateway Time-out)が返っています。
 
 ```
 curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s
@@ -216,7 +252,8 @@ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s
 </body>
 </html>
 ```
-curlのタイムアウトを設定しなかったので、Webの設定値次第ですが、どこかでタイムアウトが発生します。今回のケースでは、Web Gateway#2がタイムアウトしました。その後、NGINXがWeb gateway #1をトライしましたが、そちらもタイムアウトを起こしたので、最終的にNGINXからcurlにエラー(504 Gateway Time-out)が返っています。
+
+その様子は、下記のログで確認できます。
 
 ```
 $ docker-compose logs -f webgw2
@@ -262,7 +299,7 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 期待通り、アプリケーションはap1aに到達しています。
 
 # 負荷をかけてみる
-正常な状態で起動します。
+正常な状態に戻すために、いったん全コンテナの停止・起動を実行します。
 ```
 $ ./stop.sh
 $ ./start.sh
@@ -271,10 +308,15 @@ $ ./start.sh
 連続でリクエストを発生させても正常に動作することを確認します。
 ```
 $ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw?[1-100]
+```
+全てSUCCESSが返るはずです。
+```
 $ curl http://irishost/ap1/csp/mirrorns/get?[1-100] -u SuperUser:SYS 
 ```
-Web gateway managemtnのSystem Statusで、どのような接続が作成されているかを確認します。  
-下記で、Web gatewayを再起動して接続やカウンタをリセットする事ができます。
+全て"HostName": "ap1a"の応答が返るはずです。
+
+Web gateway managementのSystem Statusで、どのような接続が作成されているかを確認する事ができます。  
+また、下記で、Web gatewayを再起動して接続やカウンタをリセットする事ができます。
 ```
 $ docker-compose restart webgw1
 $ docker-compose restart webgw2
@@ -290,7 +332,7 @@ REGISTRY_METHODS=Disabled
 # HAPROXY
 各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
 
-|IRISクラスタ|バックエンド|フロントエンド|備考|
+|ミラークラスタ|バックエンド|フロントエンド|備考|
 |:--|:--|:--|:--|
 |ap1|ap1a:1972,ap1b:1972|irishost:1972||
 |ap2|ap2a:1972,ap2b:1972|irishost:11972||
