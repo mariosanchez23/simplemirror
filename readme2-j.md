@@ -40,22 +40,22 @@ $ ./start-single-bridge.sh   (単一のNICのみで構成される環境)
 - Web gateway #1と#2は負荷分散目的で、全く同じ構成を持ちます。
 - NGINXは上記、Web gateway #1,#2をアップストリームに持つreverse proxyとして機能します。
 - 各コンテナは、ポート番号が重複しないように、ポートを変更してホストO/Sにエンドポイントを公開しています。  
-- 各コンテナ要素をAWSの要素に置き換えて考えることができます。その場合、docker-composeはVPC環境、ホストO/Sはインターネットに相当すると考えます。
+- 各コンテナ要素をAWSの要素に置き換えて考えることができます。その場合、docker-composeはVPC環境、ホストO/SはVPCの外側に相当すると考えます。
 
 ![構成図](https://github.com/IRISMeister/doc-images/blob/main/simplemirror/diagram.png)
 
 # Web endpoints
-Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINXの計7台)存在するため、多数のエンドポイントが用意されますが、主たる用途を考慮すると使用に適したものは限定されます。
+Webサーバが複数(専用Apache×2, IRIS同梱のApache×4, LB代わりのNGINXの計7台)存在するため、多数のエンドポイントが用意されますが、主たる用途を考慮すると使用に適したものは限定されます。
 
 ## Web gateway management portal
 利便性のため、全てのポートをO/Sに公開していますが、管理画面なので、外部(LB)からのアクセスは無く、ネットワーク(VPC)内部からのアクセスが主になります。
 
 |要素|エンドポイント|備考|
 |:--|:--|:--|
-|AP1A組み込みApache|http://irishost:9092/csp/bin/Systems/Module.cxw|You are not authorized to use this facility|
-|AP1B組み込みApache|http://irishost:9093/csp/bin/Systems/Module.cxw|You are not authorized to use this facility|
-|AP2A組み込みApache|http://irishost:9094/csp/bin/Systems/Module.cxw|You are not authorized to use this facility|
-|AP2B組み込みApache|http://irishost:9095/csp/bin/Systems/Module.cxw|You are not authorized to use this facility|
+|AP1A組み込みApache|http://irishost:9092/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
+|AP1B組み込みApache|http://irishost:9093/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
+|AP2A組み込みApache|http://irishost:9094/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
+|AP2B組み込みApache|http://irishost:9095/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
 |Web Gateway#1|http://irishost:8080/csp/bin/Systems/Module.cxw||
 |Web Gateway#2|http://irishost:8081/csp/bin/Systems/Module.cxw||
 |NGINX|http://irishost/csp/bin/Systems/Module.cxw|本用途に不向き|
