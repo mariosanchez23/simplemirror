@@ -3,20 +3,18 @@
 ミラーを使用するため、コミュニティエディションでは動作しません。[ミラーが有効なx64コンテナ用のライセンスキー](https://wrc.intersystems.com/wrc/coDistEvaluation.csp) をご用意ください。
 
 # How to setup.
-Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway-example)を使用しています。[関連ポスト](https://community.intersystems.com/post/apache-and-containerised-iris)。
-
-下記の追加要素を加えるために、上記のレポ取得後に、webgateway-entrypoint.sh,webgateway.confを置き換える必要があります。
+Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway-example)をSubModuleとして使用しています。[関連ポスト](https://community.intersystems.com/post/apache-and-containerised-iris)。
+下記の追加要素を加えるために、webgateway-entrypoint.sh,webgateway.confを本レポジトリ提供のファイルに置き換える必要があります。
 - ミラー構成
 - /api/パスの認識
 
 ```
 $ git clone https://github.com/IRISMeister/simplemirror.git
-$ git clone https://github.com/caretdev/iris-webgateway-example
-$ copy ./simplemirror/webgateway-entrypoint.sh iris-webgateway-example/
-$ copy ./simplemirror/webgateway.conf iris-webgateway-example/
+$ cd simplemirror
+$ cp ./webgateway* iris-webgateway-example/
 $ cd iris-webgateway-example
 $ docker-compose build
-$ cd ../simplemirror
+$ cd ..
 $ cp ミラーが有効なx64コンテナ用のライセンスキー ./iris.key
 $ ./start.sh
 or
@@ -29,15 +27,16 @@ $ ./start-single-bridge.sh   (単一のNICのみで構成される環境)
 起動すると、下記のコンテナ群を起動します。
 |コンテナサービス名|コンテナイメージ|Web公開ポート|用途|AWSでの読み替え|
 |:--|:--|:--|:--|:--|
-|nginx|nginx|80|LBとして機能|LB|
-|webgw1|独自|8080|Web gateway #1|EC2|
-|webgw2|独自|8081|Web gateway #2|EC2|
-|ap1a|iris|9092|AP1ミラークラスタのメンバ|EC2|
-|ap1b|iris|9093|AP1ミラークラスタのメンバ|EC2|
-|ap2a|iris|9094|AP2ミラークラスタのメンバ|EC2|
-|ap2b|iris|9095|AP2ミラークラスタのメンバ|EC2|
+|nginx|nginx|80|外部LB。http用のLBとして機能|LB|
+|webgw1|ビルド|8080|Web gateway #1|EC2|
+|webgw2|ビルド|8081|Web gateway #2|EC2|
+|ap1a|iris|9092|ミラーAP1のメンバ|EC2|
+|ap1b|iris|9093|ミラーAP1のメンバ|EC2|
+|ap2a|iris|9094|ミラーAP2のメンバ|EC2|
+|ap2b|iris|9095|ミラーAP2のメンバ|EC2|
+|haproxy|ビルド|80|内部LB。IRIS SuperServer用のproxyとして機能|LB|
 
-- AP1,AP2はそれぞれHAミラークラスタを構成する単位です。AP1はap1a,ap1bコンテナで構成されます。同様にAP2はap2a,ap2bコンテナで構成されます。
+- AP1,AP2はそれぞれHAミラークラスタを構成する単位です。AP1はap1a,ap1bコンテナで構成されます。同様にAP2はap2a,ap2bコンテナで構成されます。以後、ミラーAP1,ミラーAP2と称します。
 - Web gateway #1と#2は負荷分散目的で、全く同じ構成を持ちます。
 - NGINXは上記、Web gateway #1,#2をアップストリームに持つreverse proxyとして機能します。
 - 各コンテナは、ポート番号が重複しないように、ポートを変更してホストO/Sにエンドポイントを公開しています。  
@@ -77,10 +76,10 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |Web Gateway#2|http://irishost:8081/ap1b/csp/sys/%25CSP.Portal.Home.zen|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/csp/sys/%25CSP.Portal.Home.zen|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/csp/sys/%25CSP.Portal.Home.zen|AP2B|
-|Web Gateway#1|http://irishost:8080/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1ミラークラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#1|http://irishost:8080/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2ミラークラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#2|http://irishost:8081/ap1/csp/sys/%25CSP.Portal.Home.zen |AP1ミラークラスタのプライマリメンバ,本用途に不向き|
-|Web Gateway#2|http://irishost:8081/ap2/csp/sys/%25CSP.Portal.Home.zen |AP2ミラークラスタのプライマリメンバ,本用途に不向き|
+|Web Gateway#1|http://irishost:8080/ap1/csp/sys/%25CSP.Portal.Home.zen |ミラーAP1のプライマリメンバ,本用途に不向き|
+|Web Gateway#1|http://irishost:8080/ap2/csp/sys/%25CSP.Portal.Home.zen |ミラーAP2のプライマリメンバ,本用途に不向き|
+|Web Gateway#2|http://irishost:8081/ap1/csp/sys/%25CSP.Portal.Home.zen |ミラーAP1のプライマリメンバ,本用途に不向き|
+|Web Gateway#2|http://irishost:8081/ap2/csp/sys/%25CSP.Portal.Home.zen |ミラーAP2のプライマリメンバ,本用途に不向き|
 
 ## IRIS提供の管理用REST API
 
@@ -98,10 +97,10 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |Web Gateway#2|http://irishost:8081/ap1b/api/mgmnt/|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/api/mgmnt/|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/api/mgmnt/|AP2B|
-|Web Gateway#1|http://irishost:8080/ap1/api/mgmnt/ |AP1ミラークラスタのプライマリメンバ,用途次第|
-|Web Gateway#1|http://irishost:8080/ap2/api/mgmnt/ |AP2ミラークラスタのプライマリメンバ,用途次第|
-|Web Gateway#2|http://irishost:8081/ap1/api/mgmnt/ |AP1ミラークラスタのプライマリメンバ,用途次第|
-|Web Gateway#2|http://irishost:8081/ap2/api/mgmnt/|AP2ミラークラスタのプライマリメンバ,用途次第|
+|Web Gateway#1|http://irishost:8080/ap1/api/mgmnt/ |ミラーAP1のプライマリメンバ,用途次第|
+|Web Gateway#1|http://irishost:8080/ap2/api/mgmnt/ |ミラーAP2のプライマリメンバ,用途次第|
+|Web Gateway#2|http://irishost:8081/ap1/api/mgmnt/ |ミラーAP1のプライマリメンバ,用途次第|
+|Web Gateway#2|http://irishost:8081/ap2/api/mgmnt/|ミラーAP2のプライマリメンバ,用途次第|
 
 - アクセス時には認証が必要です
 ```
@@ -125,8 +124,8 @@ $ curl http://irishost:9092/api/mgmnt/ -u SuperUser:SYS -s | jq
 下記のエンドポイントに、IRISホストの情報をJSONで返却する簡単なRESTアプリケーションを用意してあります。
 |要素|エンドポイント|備考|
 |:--|:--|:--|
-|Web Gateway#1|http://irishost/ap1/csp/mirrorns/get|AP1ミラークラスタのプライマリメンバ|
-|Web Gateway#2|http://irishost/ap2/csp/mirrorns/get|AP2ミラークラスタのプライマリメンバ|
+|Web Gateway#1|http://irishost/ap1/csp/mirrorns/get|ミラーAP1のプライマリメンバ|
+|Web Gateway#2|http://irishost/ap2/csp/mirrorns/get|ミラーAP2のプライマリメンバ|
 
 - アクセス時には認証が必要です
 ```
@@ -146,7 +145,7 @@ $ ./stop.sh
 $ ./start.sh
 ```
 
-## ap1a:Primary, ap1b:Backup 
+## 状態 ap1a:Primary, ap1b:Backup 
 起動直後の状態でのHealth Checkの応答は以下の通りです。  
 ```
 $ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw -v
@@ -158,7 +157,7 @@ $ curl -m 5 http://irishost:8081/ap1b/csp//mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FALIED
 ```
-アプリケーションに見立てた下記のAPIコールで、リクエストがap1a(AP1ミラークラスタのプライマリメンバ)、ap2a(AP2ミラークラスタのプライマリメンバ)に到達していることが確認できます。
+アプリケーションに見立てた下記のAPIコールで、リクエストがap1a(ミラーAP1のプライマリメンバ)、ap2a(ミラーAP2のプライマリメンバ)に到達していることが確認できます。
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 {
@@ -197,14 +196,14 @@ $ curl http://irishost/ap2/csp/mirrorns/get?[1-2] -u SuperUser:SYS -s | jq
 
 |ServerNumber|ServerName|MirrorMember|MirrorStatus|
 |:--|:--|:--|:--|
-|n1|MIRROR1|MIRRORSET:MIRRORA|Primary|
-|n2|MIRROR1|MIRRORSET:MIRRORB|Failover|
-|n3|MIRROR2|MIRRORSET:MIRRORA|Primary|
-|n4|MIRROR2|MIRRORSET:MIRRORB|Failover|
+|n1|ap1|MIRRORSET:MIRRORA|Primary|
+|n2|ap1|MIRRORSET:MIRRORB|Failover|
+|n3|ap2|MIRRORSET:MIRRORA|Primary|
+|n4|ap2|MIRRORSET:MIRRORB|Failover|
 
 この状態になっていない場合、以後の動作は記載と異なったものとなります。
 
-## ap1a:down, ap1b:Primary
+## 状態 ap1a:down, ap1b:Primary
 ap1aのIRISを停止して、ap1bをプライマリに昇格させた後にHealth Checkの応答を確認します。  
 ap1aが応答しなくなったため、curlでtimeout(5秒)が発生しました。  
 Active Healthcheckが利用できる環境であれば、この接続は無効にマークされます)
@@ -229,7 +228,7 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 }
 ```
 
-## ap1a:down, ap1b:down
+## 状態 ap1a:down, ap1b:down
 ap1ミラークラスタの全IRISメンバを停止状態にします。  
 誰も応答しないので、curlでtimeout(5秒)が発生しました。
 ```
@@ -274,7 +273,7 @@ $ docker-compose logs -f webgw1
 webgw      | 10.0.100.13 - - [25/Feb/2021:14:10:51 +0900] "GET /ap1/csp/mirrorns/get HTTP/1.0" 500 -
 ```
 
-## ap1a:Primary, ap1b:down
+## 状態 ap1a:Primary, ap1b:down
 ap1aを起動します。ap1aはプライマリになります。
 ```
 $ docker-compose exec ap1a iris start iris quietly

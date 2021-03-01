@@ -165,6 +165,8 @@ services:
       - CONFIG_NAME4=ap2b
       - SERVER_HOST4=10.1.1.5
       - SERVER_PORT4=1972
+      - MIRROR_CONFIG_NAME=ap1
+      - MIRROR_CONFIG_NAME2=ap2
     ports:
       - "8080:80"
     networks:
@@ -190,6 +192,8 @@ services:
       - CONFIG_NAME4=ap2b
       - SERVER_HOST4=10.1.1.5
       - SERVER_PORT4=1972
+      - MIRROR_CONFIG_NAME=ap1
+      - MIRROR_CONFIG_NAME2=ap2
     ports:
       - "8081:80"
     networks:
