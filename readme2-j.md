@@ -66,9 +66,9 @@ Webサーバが複数(専用Apache*2, IRIS同梱のApache*4, LB代わりのNGINX
 |要素|エンドポイント|備考|
 |:--|:--|:--|
 |AP1A組み込みApache|http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen||
-|AP1B組み込みApache|http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen||
-|AP2A組み込みApache|http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen||
-|AP2A組み込みApache|http://irishost:9092/csp/sys/%25CSP.Portal.Home.zen||
+|AP1B組み込みApache|http://irishost:9093/csp/sys/%25CSP.Portal.Home.zen||
+|AP2A組み込みApache|http://irishost:9094/csp/sys/%25CSP.Portal.Home.zen||
+|AP2A組み込みApache|http://irishost:9095/csp/sys/%25CSP.Portal.Home.zen||
 |Web Gateway#1|http://irishost:8080/ap1a/csp/sys/%25CSP.Portal.Home.zen|AP1A|
 |Web Gateway#1|http://irishost:8080/ap1b/csp/sys/%25CSP.Portal.Home.zen|AP1B|
 |Web Gateway#1|http://irishost:8080/ap2a/csp/sys/%25CSP.Portal.Home.zen|AP2A|
