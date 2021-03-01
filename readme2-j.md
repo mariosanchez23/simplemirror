@@ -215,7 +215,7 @@ $ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
 ```
-アプリケーションへのAPIコールはで、ap1b(プライマリに昇格した元バックアップメンバ)に到達していることが確認できます。
+アプリケーションへのAPIコールは、ap1b(プライマリに昇格した元バックアップメンバ)に到達していることが確認できます。
 
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
@@ -230,7 +230,7 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 
 ## 状態 ap1a:down, ap1b:down
 ap1ミラークラスタの全IRISメンバを停止状態にします。  
-誰も応答しないので、curlでtimeout(5秒)が発生しました。
+Health Checkに誰も応答しないので、下記はいずれもcurlでtimeout(5秒)が発生しました。
 ```
 $ docker-compose exec ap1b iris stop iris quietly
 $ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
@@ -239,10 +239,16 @@ $ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
 
+アプリケーションへのAPIコールも誰も応答しないので、curlでtimeout(5秒)が発生しました。
+```
+$ curl -m 5 http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s
+curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
+```
+
 curlのタイムアウトを設定しない場合、Webの設定値次第ですが、どこかでタイムアウトが発生します。今回のケースでは、Web Gateway#2がタイムアウトしました。その後、NGINXがWeb gateway #1をトライしましたが、そちらもタイムアウトを起こしたので、最終的にNGINXからcurlにエラー(504 Gateway Time-out)が返っています。
 
 ```
-curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s
+$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s
 <html>
 <head><title>504 Gateway Time-out</title></head>
 <body>
@@ -275,6 +281,7 @@ webgw      | 10.0.100.13 - - [25/Feb/2021:14:10:51 +0900] "GET /ap1/csp/mirrorns
 
 ## 状態 ap1a:Primary, ap1b:down
 ap1aを起動します。ap1aはプライマリになります。
+ap1bは停止状態のままですので、curlでtimeout(5秒)が発生しました。
 ```
 $ docker-compose exec ap1a iris start iris quietly
 $ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw -v
@@ -283,7 +290,7 @@ SUCCESS
 $ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
-ap1bは停止状態ですので、curlでtimeout(5秒)が発生しました。
+アプリケーションへのAPIコールは、ap1a(プライマリ)に到達していることが確認できます。
 
 ```
 $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
@@ -295,7 +302,6 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
   "ImageBuilt": ""
 }
 ```
-期待通り、アプリケーションはap1aに到達しています。
 
 # 負荷をかけてみる
 正常な状態に戻すために、いったん全コンテナの停止・起動を実行します。
