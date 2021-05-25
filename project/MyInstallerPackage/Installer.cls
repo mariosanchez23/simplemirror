@@ -61,7 +61,7 @@ ClassMethod setup2(ByRef tVars) As %Status
 	Set tSC='$$$OK
 	Try {
 		If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
-		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="MIRRORNS" }
+		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="mirrorns" }
 		$$$THROWONERROR(tSC,..setupMethod2(.tVars))
 	} Catch(e) {
 		Set tSC=e.AsStatus()
@@ -71,7 +71,8 @@ ClassMethod setup2(ByRef tVars) As %Status
 	New $NAMESPACE
 	Set $NAMESPACE="%SYS"
 
-	Set webapp="/csp/"_tVars("NAMESPACE")_"/"
+	Set webapp="/csp/"_tVars("NAMESPACE")_"/api/"
+	Set tSC = ##Class(Security.Applications).Create(webapp)
 	Set tSC = ##Class(Security.Applications).Get(webapp,.props)
 	$$$ThrowOnError(tSC)
 	Set props("DispatchClass")="MyApp.disp"

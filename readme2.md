@@ -95,8 +95,8 @@ http://irishost:8081/ap2b/csp/mirror_status.cxw    (via webgw2, ap2b)
 
 App end point
 ```
-http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
-http://irishost/ap2/csp/mirrorns/get -u SuperUser:SYS -s | jq
+http://irishost/ap1/csp/mirrorns/api/get -s | jq
+http://irishost/ap2/csp/mirrorns/api/get -s | jq
 ```
 
 # HealthCheck endpoints and their behaivor. These are what LB will see.
@@ -155,7 +155,7 @@ https://wrc.intersystems.com/wrc/ProblemViewTabs.csp?OBJID=903951
 # App REST tests
 ## app1a:Primary, app1b:Backup 
 ```
-$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
 {
   "HostName": "ap1a",
   "UserName": "SuperUser",
@@ -168,7 +168,7 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 ## app1a:down, app1b:Primary
 ```
 $ docker-compose -f docker-compose-single-ni.yml exec ap1a iris stop iris quietly
-$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
 {
   "HostName": "ap1b",
   "UserName": "SuperUser",
@@ -181,14 +181,14 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 ## app1a:down, app1b:down
 ```
 $ docker-compose -f docker-compose-single-ni.yml exec ap1b iris stop iris quietly
-$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS 
+$ curl http://irishost/ap1/csp/mirrorns/api/get 
 ```
 Timeouts. Tooks a while.
 
 ## app1a:Primary, app1b:down
 ```
 $ docker-compose -f docker-compose-single-ni.yml exec ap1a iris start iris quietly
-$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
 {
   "HostName": "ap1a",
   "UserName": "SuperUser",
@@ -202,7 +202,7 @@ $ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
 ```
 $ docker-compose stop webgw1
 Stopping webgw ... done
-$ curl http://irishost/ap1/csp/mirrorns/get -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
 {
   "HostName": "ap1a",
   "UserName": "SuperUser",

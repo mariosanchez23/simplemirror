@@ -1,8 +1,8 @@
 version: '3.7'
 x-var: &IRIS_IMAGE
-  "containers.intersystems.com/intersystems/iris:2020.3.0.221.0"
+  "containers.intersystems.com/intersystems/iris:2021.1.0.205.0"
 x-var: &ARBITER_IMAGE
-  "containers.intersystems.com/intersystems/arbiter:2020.3.0.221.0"
+  "containers.intersystems.com/intersystems/arbiter:2021.1.0.205.0"
 x-var: &WEBGW_IMAGE
   "iris-webgateway-example_web:latest"
 
