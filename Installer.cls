@@ -19,7 +19,9 @@ ClassMethod setup(systemname) As %Status
       // Allow some time to create mirror in primary
       //h 3
       set primaryAgentAddress=$SYSTEM.Util.GetEnviron("primaryAgentAddress_ip")  //"10.0.1.2"
-      do ..joinAsFailover(systemname,primaryAgentAddress)
+      Set membertype=""  // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
+      //Set membertype=0
+      do ..join(membertype,systemname,primaryAgentAddress)
     }
     // Create DB and add it to mirror
     do ..createMirrorDB()
@@ -41,7 +43,7 @@ ClassMethod createMirror(systemname) As %Status
   quit sc
 }
 
-ClassMethod joinAsFailover(systemname, agentAddress) As %Status
+ClassMethod join(membertype,systemname, agentAddress) As %Status
 {
   set mirrorName="MIRRORSET"
   set instanceName="IRIS"
@@ -49,7 +51,12 @@ ClassMethod joinAsFailover(systemname, agentAddress) As %Status
   // Join as failover:
   set LocalInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") // "10.0.1.3"
   set LocalInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.3"
-  s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,systemname,instanceName,agentAddress,,.LocalInfo)
+  If (membertype="") {
+    s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,systemname,instanceName,agentAddress,,.LocalInfo)
+  }
+  Else {
+    s sc=##class(SYS.Mirror).JoinMirrorAsAsyncMember(mirrorName,systemname,instanceName,agentAddress,,membertype,.LocalInfo)  
+  }
   write !,"Jonining mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)
   quit sc
@@ -85,8 +92,9 @@ ClassMethod createMirrorDB() As %Status
     set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
     if mirrorStatus="Backup" Quit
     if mirrorStatus="Primary" Quit
+    if mirrorStatus="Connected" Quit   // async member
   }
-  if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")) { 
+  if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")&(mirrorStatus'="Connected")) { 
     write "Mirror failed to be ready: Mirror Status:"_mirrorStatus,!
     quit '$$$OK
   }
