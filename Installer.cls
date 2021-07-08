@@ -3,22 +3,25 @@ Include %occInclude
 Class Mirror.Installer
 {
 
-ClassMethod setup(hostname) As %Status
+ClassMethod setup(systemname) As %Status
 {
   if $system.Mirror.IsMember() {
 		write !,"This system is already configured as a mirror member"
  	}else{
-    write !,"Setup for host: "_hostname,!
+    write !,"Setup for host: "_systemname,!
     
     // Enable mirror: 
     do ..enableMirrorService()
   
-    if hostname="mirrorA" {
-      do ..createMirror("mirrorA")
+    if systemname="mirrorA" {
+      do ..createMirror(systemname)
     } else {
       // Allow some time to create mirror in primary
-      h 2
-      do ..joinAsFailover("mirrorB","mirrorA")
+      //h 3
+      set primaryAgentAddress=$SYSTEM.Util.GetEnviron("primaryAgentAddress_ip")  //"10.0.1.2"
+      Set membertype=""  // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
+      //Set membertype=0
+      do ..join(membertype,systemname,primaryAgentAddress)
     }
     // Create DB and add it to mirror
     do ..createMirrorDB()
@@ -26,24 +29,34 @@ ClassMethod setup(hostname) As %Status
   quit $$$OK
 }
 
-ClassMethod createMirror(hostname) As %Status
+ClassMethod createMirror(systemname) As %Status
 {
   set mirrorName="MIRRORSET"
   // Create mirror:
-  set mirror("UseSSL") = 0
-  set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, hostname, .mirror)
+  set MirrorInfo("UseSSL") = 0
+  set MirrorInfo("ArbiterNode") = $SYSTEM.Util.GetEnviron("ARBITER_ip")_"|2188" // "10.0.100.10|2188"
+  set MirrorInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") //"10.0.1.2"
+  set MirrorInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.2"
+  set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, systemname, .MirrorInfo)
   write !,"Creating mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)  
   quit sc
 }
 
-ClassMethod joinAsFailover(hostnameFrom, hostnameTo) As %Status
+ClassMethod join(membertype,systemname, agentAddress) As %Status
 {
   set mirrorName="MIRRORSET"
   set instanceName="IRIS"
   
   // Join as failover:
-  s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,hostnameFrom,instanceName,hostnameTo,,.MirrorInfo)
+  set LocalInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") // "10.0.1.3"
+  set LocalInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.3"
+  If (membertype="") {
+    s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,systemname,instanceName,agentAddress,,.LocalInfo)
+  }
+  Else {
+    s sc=##class(SYS.Mirror).JoinMirrorAsAsyncMember(mirrorName,systemname,instanceName,agentAddress,,membertype,.LocalInfo)  
+  }
   write !,"Jonining mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)
   quit sc
@@ -72,8 +85,20 @@ ClassMethod createMirrorDB() As %Status
   // Add DB to config
   set Properties("Directory")=dir_dirName
   do ##class(Config.Databases).Create(mirDBName,.Properties)
-  // Set the DB properties
-  set Properties("Directory")=dir_dirName
+
+  // wait until mirror's ready
+  for i=1:1:10 {
+    h 1
+    set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
+    if mirrorStatus="Backup" Quit
+    if mirrorStatus="Primary" Quit
+    if mirrorStatus="Connected" Quit   // async member
+  }
+  if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")&(mirrorStatus'="Connected")) { 
+    write "Mirror failed to be ready: Mirror Status:"_mirrorStatus,!
+    quit '$$$OK
+  }
+
   set rc = ##class(SYS.Database).CreateDatabase(dir_dirName,,,,,,mirDBName,mirrorName)
   if 'rc { 
     write !,"Database creation failed!"
@@ -91,7 +116,20 @@ ClassMethod createMirrorDB() As %Status
     do $system.OBJ.DisplayError(rc)
     quit rc
   }
+  // Enables production
+  Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
     
+  Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)
+  if (mirrorStatus="Primary") {
+    Set tSC=##class(MyInstallerPackage.Installer).setup()
+    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
+    Set $NAMESPACE=mirNSName
+    Do ##class(Ens.Director).StartProduction()    
+  }
+  Else {
+    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
+  }
+
   quit $$$OK
 }
 
