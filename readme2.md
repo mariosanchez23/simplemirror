@@ -13,13 +13,11 @@ You have to build it after overwrting webgateway-entrypoint.sh and webgateway.co
 - recognize /api/
 
 ```
-$ git clone https://github.com/IRISMeister/simplemirror.git
-$ git clone https://github.com/caretdev/iris-webgateway-example
-$ copy ./simplemirror/webgateway-entrypoint.sh iris-webgateway-example/
-$ copy ./simplemirror/webgateway.conf iris-webgateway-example/
-$ cd iris-webgateway-example
-$ docker-compose build
-$ cd ../simplemirror
+$ git clone --recursive https://github.com/IRISMeister/simplemirror.git
+$ cd simplemirror
+$ cp ./webgateway* iris-webgateway-example/
+$ docker-compose -f iris-webgateway-example/docker-compose.yml build
+$ place ./iris.key (valid iris license key for container)
 $ ./start-single-bridge.sh   (mimics typical cloud env where you have only one NIC)
 or
 $ ./start.sh

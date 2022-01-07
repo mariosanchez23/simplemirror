@@ -9,7 +9,7 @@ Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway
 - /api/パスの認識
 
 ```
-$ git clone https://github.com/IRISMeister/simplemirror.git
+$ git clone --recursive https://github.com/IRISMeister/simplemirror.git
 $ cd simplemirror
 $ cp ./webgateway* iris-webgateway-example/
 $ docker-compose -f iris-webgateway-example/docker-compose.yml build

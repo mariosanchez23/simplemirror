@@ -1,4 +1,8 @@
 #!/bin/bash
+chmod -fR 777 iris1A 
+chmod -fR 777 iris1B 
+chmod -fR 777 iris2A 
+chmod -fR 777 iris2B 
 # primaries
 docker-compose -f docker-compose-single-bridge.yml up -d ap1a ap2a
 docker-compose -f docker-compose-single-bridge.yml exec -T ap1a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
