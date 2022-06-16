@@ -7,7 +7,7 @@ touch CSP.ini
 touch CSP.log
 touch CSPRT.ini
 
-apacheUser=daemon
+apacheUser=www-data
 
 chmod 600 CSP.ini
 chown $apacheUser CSP.ini
