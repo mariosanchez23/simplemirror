@@ -17,7 +17,7 @@ ClassMethod setup(hostname) As %Status
       do ..createMirror("mirrorA")
     } else {
       // Allow some time to create mirror in primary
-      h 2
+      h 5
       do ..joinAsFailover("mirrorB","mirrorA")
     }
     // Create DB and add it to mirror
@@ -31,6 +31,7 @@ ClassMethod createMirror(hostname) As %Status
   set mirrorName="MIRRORSET"
   // Create mirror:
   set mirror("UseSSL") = 0
+  set mirror("ArbiterNode") = "172.16.238.10|2188"
   set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, hostname, .mirror)
   write !,"Creating mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)  
@@ -60,6 +61,7 @@ ClassMethod enableMirrorService() As %Status
 ClassMethod createMirrorDB() As %Status
 {
   set dir="/ISC/"
+  //set dir = "/usr/irissys/mgr/"
   set dirName="mirrorDB"
   set mirDBName="MIRRORDB"
   set mirrorName="MIRRORSET"
