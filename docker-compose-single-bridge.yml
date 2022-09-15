@@ -24,9 +24,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorA
-      - ARBITER_ip=10.0.100.10
-      - MirrorAddress_ip=10.0.1.2
-      - ECPAddress_ip=10.0.100.2
+      - ARBITER_ip=10.1.100.10
+      - MirrorAddress_ip=10.1.1.2
+      - ECPAddress_ip=10.1.1.2
       - CSPConfigName=ap1,ap1a
       - TZ=JST-9
     ports:
@@ -36,9 +36,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.2
-      arbiter-tier:
-        ipv4_address: 10.0.100.2
+        ipv4_address: 10.1.1.2
 
   ap1b:
     container_name: ap1b
@@ -58,9 +56,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorB
-      - primaryAgentAddress_ip=10.0.1.2
-      - MirrorAddress_ip=10.0.1.3
-      - ECPAddress_ip=10.0.100.3
+      - primaryAgentAddress_ip=10.1.1.2
+      - MirrorAddress_ip=10.1.1.3
+      - ECPAddress_ip=10.1.1.3
       - CSPConfigName=ap1,ap1b
       - TZ=JST-9
     ports:
@@ -70,9 +68,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.3
-      arbiter-tier:
-        ipv4_address: 10.0.100.3    
+        ipv4_address: 10.1.1.3    
 
   ap2a:
     container_name: ap2a
@@ -91,9 +87,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorA
-      - ARBITER_ip=10.0.100.10
-      - MirrorAddress_ip=10.0.1.4
-      - ECPAddress_ip=10.0.100.4
+      - ARBITER_ip=10.1.100.10
+      - MirrorAddress_ip=10.1.1.4
+      - ECPAddress_ip=10.1.1.4
       - CSPConfigName=ap2,ap2a
       - TZ=JST-9
     ports:
@@ -103,9 +99,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.4
-      arbiter-tier:
-        ipv4_address: 10.0.100.4
+        ipv4_address: 10.1.1.4
 
   ap2b:
     container_name: ap2b
@@ -125,9 +119,9 @@ services:
       - ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=mirrorB
-      - primaryAgentAddress_ip=10.0.1.4
-      - MirrorAddress_ip=10.0.1.5
-      - ECPAddress_ip=10.0.100.5
+      - primaryAgentAddress_ip=10.1.1.4
+      - MirrorAddress_ip=10.1.1.5
+      - ECPAddress_ip=10.1.1.5
       - CSPConfigName=ap2,ap2b
       - TZ=JST-9
     ports:
@@ -137,9 +131,7 @@ services:
       -a /ISC/utiles/installer.sh
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.5
-      arbiter-tier:
-        ipv4_address: 10.0.100.5
+        ipv4_address: 10.1.1.5  
 
   arbiter:
     container_name: arbiter
@@ -151,35 +143,35 @@ services:
     environment:
       - TZ=JST-9
     networks:
-      arbiter-tier:
-        ipv4_address: 10.0.100.10
+      iris-tier:
+        ipv4_address: 10.1.100.10
 
   webgw1:
-    container_name: webgw
-    hostname: webgw
+    container_name: webgw1
+    hostname: webgw1
     image: *WEBGW_IMAGE
     init: true    
     environment:
       - TZ=JST-9
       - CONFIG_NAME=ap1a
-      - SERVER_HOST=10.0.100.2
+      - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
       - CONFIG_NAME2=ap1b
-      - SERVER_HOST2=10.0.100.3
+      - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
       - CONFIG_NAME3=ap2a
-      - SERVER_HOST3=10.0.100.4
+      - SERVER_HOST3=10.1.1.4
       - SERVER_PORT3=1972
       - CONFIG_NAME4=ap2b
-      - SERVER_HOST4=10.0.100.5
+      - SERVER_HOST4=10.1.1.5
       - SERVER_PORT4=1972
       - MIRROR_CONFIG_NAME=ap1
       - MIRROR_CONFIG_NAME2=ap2
     ports:
       - "8080:80"
     networks:
-      arbiter-tier:
-        ipv4_address: 10.0.100.11
+      iris-tier:
+        ipv4_address: 10.1.100.11
 
   webgw2:
     container_name: webgw2
@@ -189,25 +181,24 @@ services:
     environment:
       - TZ=JST-9
       - CONFIG_NAME=ap1a
-      - SERVER_HOST=10.0.100.2
+      - SERVER_HOST=10.1.1.2
       - SERVER_PORT=1972
       - CONFIG_NAME2=ap1b
-      - SERVER_HOST2=10.0.100.3
+      - SERVER_HOST2=10.1.1.3
       - SERVER_PORT2=1972
       - CONFIG_NAME3=ap2a
-      - SERVER_HOST3=10.0.100.4
+      - SERVER_HOST3=10.1.1.4
       - SERVER_PORT3=1972
       - CONFIG_NAME4=ap2b
-      - SERVER_HOST4=10.0.100.5
+      - SERVER_HOST4=10.1.1.5
       - SERVER_PORT4=1972
       - MIRROR_CONFIG_NAME=ap1
       - MIRROR_CONFIG_NAME2=ap2
     ports:
       - "8081:80"
     networks:
-      arbiter-tier:
-        ipv4_address: 10.0.100.12
-
+      iris-tier:
+        ipv4_address: 10.1.100.12
   nginx:
     hostname: nginx
     container_name: nginx
@@ -224,8 +215,8 @@ services:
     ports:
       - "80:80"
     networks:
-      arbiter-tier:
-        ipv4_address: 10.0.100.13
+      iris-tier:
+        ipv4_address: 10.1.100.13
 
   haproxy:
     # need to build this image to add curl for external check
@@ -244,7 +235,7 @@ services:
       - "11972:11972"
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.6
+        ipv4_address: 10.1.100.14
 
 networks:
   iris-tier:
@@ -252,10 +243,4 @@ networks:
     ipam:
       driver: default
       config:
-      - subnet: 10.0.1.0/24
-  arbiter-tier:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 10.0.100.0/24
+      - subnet: 10.1.0.0/16
