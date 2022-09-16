@@ -1,60 +1,47 @@
 version: '3.7'
 services:
   arbiter:
+      container_name: arbiter
+      hostname: arbiter
       image: containers.intersystems.com/intersystems/arbiter:2022.1.0.209.0
       init: true
       command: 
         - /usr/local/etc/irissys/startISCAgent.sh 2188
-      networks:
-        app_net:
-          ipv4_address: 172.16.238.10
-  mirrorA:
-    container_name: mirrorA
-    hostname: mirrorA
+  serverA:
+    container_name: serverA
+    hostname: serverA
     image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
     depends_on:
       - arbiter
     volumes:
-      - ./irisA:/ISC
-      - ./:/ISC/utiles
+      - ./install:/install
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorA
+      - IRIS_hostname=serverA
+      - IRIS_mirrorname=MIRRORSET
+      - IRIS_arbitername=arbiter
     ports:
       - "9092:52773"
-    networks:
-      app_net:
-        ipv4_address: 172.16.238.20
     command:
       --check-caps false
-      --key /ISC/utiles/iris.key
-      -a /ISC/utiles/installer.sh
-    
-  mirrorB:
-    container_name: mirrorB
-    hostname: mirrorB
+      -a /install/installer.sh
+      --key /install/iris.key
+  serverB:
+    container_name: serverB
+    hostname: serverB
     image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
     depends_on:
-      - mirrorA
+      - arbiter
+      - serverA
     volumes:
-      - ./irisB:/ISC
-      - ./:/ISC/utiles
+      - ./install:/install
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorB
+      - IRIS_hostname=serverB
+      - IRIS_mirrorname=MIRRORSET
+      - IRIS_arbitername=arbiter
     ports:
       - "9093:52773"
-    networks:
-      app_net:
-        ipv4_address: 172.16.238.30
+
     command:
       --check-caps false
-      --key /ISC/utiles/iris.key
-      -a /ISC/utiles/installer.sh
-networks:
-  app_net:
-    ipam:
-      driver: default
-      config:
-        - subnet: "172.16.238.0/24"
-    
+      -a /install/installer.sh
+      --key /install/iris.key
