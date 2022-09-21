@@ -23,6 +23,7 @@ ClassMethod setup(hostname,pMirrorName as %String = "MIRRORSET",pArbiterName as 
     } 
     else 
     {
+      //h 5 ///Give additional time for serverA start up
       do ..joinAsFailover("serverB","serverA",pMirrorName)
     }
 
@@ -31,12 +32,11 @@ ClassMethod setup(hostname,pMirrorName as %String = "MIRRORSET",pArbiterName as 
     {
       h 1
       set mirrorSt=$LIST($SYSTEM.Mirror.GetMemberStatus(pMirrorName))
-      quit:$case(mirrorSt,"Backup":1,"Primary":1,"Connected":1,"Not initialized":1,:0)
+      quit:$case(mirrorSt,"Backup":1,"Primary":1,"Connected":1,:0)
     }
 
-    set ^JTS(hostname)="mirrosSt = "_mirrorSt
     // Whatever status distinct to Backup, Primary or Connected is considered a failure
-    if '$case(mirrorSt,"Backup":1,"Primary":1,"Connected":1,"Not initialized":1,:0)
+    if '$case(mirrorSt,"Backup":1,"Primary":1,"Connected":1,:0)
     {
       write "Mirror "_pMirrorName_" failed to be ready: Mirror Status:"_mirrorSt,!
       quit '$$$OK
