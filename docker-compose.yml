@@ -1,43 +1,47 @@
-version: '3.6'
-## docker login docker.iscinternal.com
-## Connect to SMP mirror A
-## http://127.0.0.1:9092/csp/sys/UtilHome.csp
-## Commands: 
-# docker exec -it mirrorA iris session IRIS
-
+version: '3.7'
 services:
-  mirrorA:
-    container_name: mirrorA
-    hostname: mirrorA
-    #image: docker.iscinternal.com/intersystems/iris:2019.3.0-latest
-    image: intersystems/iris:2019.3.0.302.0
+  arbiter:
+      container_name: arbiter
+      hostname: arbiter
+      image: containers.intersystems.com/intersystems/arbiter:2022.1.0.209.0
+      init: true
+      command: 
+        - /usr/local/etc/irissys/startISCAgent.sh 2188
+  serverA:
+    container_name: serverA
+    hostname: serverA
+    image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+    depends_on:
+      - arbiter
     volumes:
-      - ./irisA:/ISC
-      - ./:/ISC/utiles
+      - ./install:/install
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorA
+      - IRIS_hostname=serverA
+      - IRIS_mirrorname=MIRRORSET
+      - IRIS_arbitername=arbiter
     ports:
       - "9092:52773"
     command:
-      --key /ISC/utiles/iris.key
-      -a /ISC/utiles/installer.sh
-    
-  mirrorB:
-    container_name: mirrorB
-    hostname: mirrorB
-    #image: docker.iscinternal.com/intersystems/iris:2019.3.0-latest
-    image: intersystems/iris:2019.3.0.302.0
-    
+      --check-caps false
+      -a /install/installer.sh
+      --key /install/iris.key
+  serverB:
+    container_name: serverB
+    hostname: serverB
+    image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+    depends_on:
+      - arbiter
+      - serverA
     volumes:
-      - ./irisB:/ISC
-      - ./:/ISC/utiles
+      - ./install:/install
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
-      - IRIS_hostname=mirrorB
+      - IRIS_hostname=serverB
+      - IRIS_mirrorname=MIRRORSET
+      - IRIS_arbitername=arbiter
     ports:
       - "9093:52773"
+
     command:
-      --key /ISC/utiles/iris.key
-      -a /ISC/utiles/installer.sh
-    
+      --check-caps false
+      -a /install/installer.sh
+      --key /install/iris.key
