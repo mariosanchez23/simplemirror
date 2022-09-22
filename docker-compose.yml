@@ -19,6 +19,7 @@ services:
       - IRIS_hostname=serverA
       - IRIS_mirrorname=MIRRORSET
       - IRIS_arbitername=arbiter
+      - IRIS_debugInstall=1
     ports:
       - "9092:52773"
     command:
@@ -38,6 +39,7 @@ services:
       - IRIS_hostname=serverB
       - IRIS_mirrorname=MIRRORSET
       - IRIS_arbitername=arbiter
+      - IRIS_debugInstall=1
     ports:
       - "9093:52773"
 
