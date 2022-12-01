@@ -1,5 +1,5 @@
 version: '3.6'
-## docker login docker.iscinternal.com
+## docker login containers.intersystems.com
 ## Connect to SMP mirror A
 ## http://127.0.0.1:9092/csp/sys/UtilHome.csp
 ## Commands: 
