@@ -29,12 +29,12 @@ Regarding the Iris docker image, you can either download from Intersystems or us
 
     If you have a docker hub with images, just change the image inside the docker-compose.yml.  For example: 
 
-     *image: docker.iscinternal.com/intersystems/iris:2019.3.0-latest*
+     *image: containers.intersystems.com/intersystems/iris:2019.3.0-latest*
 
     you will need to be logged:
 
     ```shell
-    docker login docker.iscinternal.com
+    $ docker login containers.intersystems.com
     ```
 
 ## Useful commands
