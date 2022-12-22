@@ -15,6 +15,7 @@ XData setup [ XMLNamespace = INSTALLER ]
 		<Arg Value="1" />
 	</Invoke>
  	<Production Name="${ProductionName}" AutoStart="1">
+	<!-- AutoStart dosen't work -->
 	</Production>
 </Namespace>
 </Manifest>
@@ -42,7 +43,7 @@ ClassMethod setupMethod2(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %
     Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "setup2")
 }
 
-ClassMethod setup(ByRef tVars) As %Status
+ClassMethod CreateProduction(ByRef tVars) As %Status
 {
 	Set tSC='$$$OK
 	Try {
@@ -56,7 +57,7 @@ ClassMethod setup(ByRef tVars) As %Status
   Return tSC
 }
 
-ClassMethod setup2(ByRef tVars) As %Status
+ClassMethod EnableWebApps(ByRef tVars) As %Status
 {
 	Set tSC='$$$OK
 	Try {
@@ -83,12 +84,43 @@ ClassMethod setup2(ByRef tVars) As %Status
 	Set tSC = ##Class(Security.Applications).Modify(webapp,.props)
 	$$$ThrowOnError(tSC)
 
+	; enable BI
+	Set webapp="/csp/"_tVars("NAMESPACE")
+	Set tSC = ##Class(Security.Applications).Get(webapp,.props)
+	Set props("DeepSeeEnabled")=1
+	Set tSC = ##Class(Security.Applications).Modify(webapp,.props)
+	$$$ThrowOnError(tSC)
+
 	#; accept mutiple names as application path, such as "ap1, ap1a".
 	#; See https://docs.intersystems.com/irislatest/csp/docbook/Doc.View.cls?KEY=GCGI_remote_csp#GCGI_change_server_name
 	Do $System.CSP.SetConfig("CSPConfigName",$SYSTEM.Util.GetEnviron("CSPConfigName"))
 	Set $NAMESPACE=oldns
 	
-  Return tSC
+    Return tSC
+}
+
+ClassMethod BISetup(ByRef tVars) As %Status
+{
+	Set tSC='$$$OK
+	Try {
+		If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
+		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="mirrorns" }
+
+	Set oldns=$NAMESPACE
+	New $NAMESPACE
+	Set $NAMESPACE="%SYS"
+	#; install ZPM
+	Set r=##class(%Net.HttpRequest).%New(),r.Server="pm.community.intersystems.com",r.SSLConfiguration="ISC.FeatureTracker.SSL.Config" d r.Get("/packages/zpm/latest/installer"),$system.OBJ.LoadStream(r.HttpResponse.Data,"c")
+
+	Set $NAMESPACE=tVars("NAMESPACE")
+	zpm "install samples-bi"
+
+	Set $NAMESPACE=oldns
+
+	} Catch(e) {
+		Set tSC=e.AsStatus()
+	}
+  	Return tSC
 }
 
 }

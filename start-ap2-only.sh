@@ -6,22 +6,16 @@ chmod -fR 777 iris2B
 chmod -fR 777 iris2C 
 # primaries
 echo "Staring primaries"
-docker-compose up -d ap1a ap2a
-docker-compose exec -T ap1a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
+docker-compose up -d ap2a
 docker-compose exec -T ap2a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
 # join backups
 echo "Staring backups"
-docker-compose up -d ap1b ap2b
-docker-compose exec -T ap1b bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
+docker-compose up -d ap2b
 docker-compose exec -T ap2b bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
 
 echo "Staring a reporting"
 docker-compose up -d ap2c
 docker-compose exec -T ap2c bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
-
-# webgws and LBs
-docker-compose up -d webgw1 webgw2 nginx haproxy
-# give them a moment
 
 # defer populate data until mirror cluste is all set.
 echo "Populating data"

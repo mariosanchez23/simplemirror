@@ -12,15 +12,18 @@ ClassMethod setup(systemname) As %Status
     
     // Enable mirror: 
     do ..enableMirrorService()
-  
-    if systemname="mirrorA" {
+
+    set mirrorRole=$SYSTEM.Util.GetEnviron("MIRRORROLE")
+    if mirrorRole="PRIMARY" {
       do ..createMirror(systemname)
     } else {
       // Allow some time to create mirror in primary
       //h 3
       set primaryAgentAddress=$SYSTEM.Util.GetEnviron("primaryAgentAddress_ip")  //"10.0.1.2"
-      Set membertype=""  // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
-      //Set membertype=0
+     
+      If mirrorRole="REPORT" { Set membertype=2}
+      Else { Set membertype="" } 
+      // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
       do ..join(membertype,systemname,primaryAgentAddress)
     }
     // Create DB and add it to mirror
@@ -37,13 +40,17 @@ ClassMethod createMirror(systemname) As %Status
   set MirrorInfo("ArbiterNode") = $SYSTEM.Util.GetEnviron("ARBITER_ip")_"|2188" // "10.0.100.10|2188"
   set MirrorInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") //"10.0.1.2"
   set MirrorInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.2"
+  ;set MirrorInfo("CompressionForFailoverMembers") = 1 // no compression 
+  ;set MirrorInfo("CompressionForAsyncMembers") = 1 // no compression 
+  set MirrorInfo("AllowParallelDejournaling") = 2  // all members
+  
   set sc = ##class(SYS.Mirror).CreateNewMirrorSet(mirrorName, systemname, .MirrorInfo)
   write !,"Creating mirror "_mirrorName_"..."
   if 'sc do $system.OBJ.DisplayError(sc)  
   quit sc
 }
 
-ClassMethod join(membertype,systemname, agentAddress) As %Status
+ClassMethod join(membertype, systemname, agentAddress) As %Status
 {
   set mirrorName="MIRRORSET"
   set instanceName="IRIS"
@@ -72,15 +79,20 @@ ClassMethod enableMirrorService() As %Status
 
 ClassMethod createMirrorDB() As %Status
 {
-  set dir="/ISC/"
+  set dir="/DB/"
   set dirName="mirrorDB"
   set mirDBName="MIRRORDB"
   set mirrorName="MIRRORSET"
   set mirNSName="MIRRORNS"
   
-  write !, "Creating databases and NS "_mirNSName
+  write !, "Creating databases and NS "_mirNSName,!
   
-  // Create the directory
+  // If no, create it inside of container
+  If '##class(%Library.File).Exists(dir) {
+    Set dir="/home/irisowner/"
+  }
+
+  // Create directory for db
   do ##class(%Library.File).CreateNewDir(dir,dirName)
   // Add DB to config
   set Properties("Directory")=dir_dirName
@@ -99,7 +111,8 @@ ClassMethod createMirrorDB() As %Status
     quit '$$$OK
   }
 
-  set rc = ##class(SYS.Database).CreateDatabase(dir_dirName,,,,,,mirDBName,mirrorName)
+  Set dbsize=64
+  set rc = ##class(SYS.Database).CreateDatabase(dir_dirName,dbsize,,,,,mirDBName,mirrorName)
   if 'rc { 
     write !,"Database creation failed!"
     do $system.OBJ.DisplayError(rc)
@@ -120,17 +133,28 @@ ClassMethod createMirrorDB() As %Status
   Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
     
   Set tSC=$SYSTEM.OBJ.ImportDir("/project/MyInstallerPackage","","ck",.e,1)
-  if (mirrorStatus="Primary") {
-    Set tSC=##class(MyInstallerPackage.Installer).setup()
-    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
-    Set $NAMESPACE=mirNSName
-    Do ##class(Ens.Director).StartProduction()    
-  }
-  Else {
-    Set tSC=##class(MyInstallerPackage.Installer).setup2()  //create a web app
-  }
+  Set tSC=##class(MyInstallerPackage.Installer).EnableWebApps()  //create a web app
 
   quit $$$OK
+}
+
+ClassMethod PopulateMirrorDB() As %Status
+{
+  Set tSC='$$$OK
+	Try {
+    Set tSC=##class(MyInstallerPackage.Installer).CreateProduction()
+    $$$ThrowOnError(tSC)
+    Set tSC=##class(MyInstallerPackage.Installer).BISetup()
+    $$$ThrowOnError(tSC)
+
+    New $NAMESPACE
+    Set $NAMESPACE="mirrorns" ; ToDo: parameterize it.
+    Do ##class(Ens.Director).StartProduction()
+
+	} Catch(e) {
+		Set tSC=e.AsStatus()
+	}
+  Return tSC
 }
 
 }

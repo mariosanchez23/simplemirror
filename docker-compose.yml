@@ -15,17 +15,19 @@ services:
     depends_on:
       - arbiter
     volumes:
-      - ./iris1A:/ISC
+      #- ./iris1A:/DB
+      #- ./iris1A:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
       - ./uploadA:/home/irisowner/upload
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
+      #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=mirrorA
+      - IRIS_systemname=AP1A/IRIS
       - ARBITER_ip=10.0.100.10
       - MirrorAddress_ip=10.0.1.2
+      - MIRRORROLE=PRIMARY
       - ECPAddress_ip=10.0.100.2
       - CSPConfigName=ap1,ap1a
       - TZ=JST-9
@@ -51,17 +53,19 @@ services:
       - ap1a
       - arbiter
     volumes:
-      - ./iris1B:/ISC
+      #- ./iris1B:/DB
+      #- ./iris1B:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
       - ./uploadB:/home/irisowner/upload
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
+      #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=mirrorB
+      - IRIS_systemname=AP1B/IRIS
       - primaryAgentAddress_ip=10.0.1.2
       - MirrorAddress_ip=10.0.1.3
+      - MIRRORROLE=BACKUP
       - ECPAddress_ip=10.0.100.3
       - CSPConfigName=ap1,ap1b
       - TZ=JST-9
@@ -85,18 +89,20 @@ services:
     depends_on:
       - arbiter
     volumes:
-      - ./iris2A:/ISC
+      #- ./iris2A:/DB
+      #- ./iris2A:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
       - ./uploadA:/home/irisowner/upload
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
+      #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=mirrorA
+      - IRIS_systemname=AP2A/IRIS
       - ARBITER_ip=10.0.100.10
       - MirrorAddress_ip=10.0.1.4
       - ECPAddress_ip=10.0.100.4
+      - MIRRORROLE=PRIMARY
       - CSPConfigName=ap2,ap2a
       - TZ=JST-9
     ports:
@@ -120,18 +126,20 @@ services:
       - ap2a
       - arbiter
     volumes:
-      - ./iris2B:/ISC
+      #- ./iris2B:/DB
+      #- ./iris2B:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
       - ./uploadB:/home/irisowner/upload
     environment:
-      - ISC_DATA_DIRECTORY=/ISC/install
+      #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=mirrorB
+      - IRIS_systemname=AP2B/IRIS
       - primaryAgentAddress_ip=10.0.1.4
       - MirrorAddress_ip=10.0.1.5
       - ECPAddress_ip=10.0.100.5
+      - MIRRORROLE=BACKUP
       - CSPConfigName=ap2,ap2b
       - TZ=JST-9
     ports:
@@ -145,6 +153,43 @@ services:
         ipv4_address: 10.0.1.5
       arbiter-tier:
         ipv4_address: 10.0.100.5
+
+  # mirror reporting member
+  ap2c:
+    container_name: ap2c
+    hostname: ap2c
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - ap2a
+    volumes:
+      #- ./iris2C:/DB
+      #- ./iris2C:/ISC
+      - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./project:/project
+      - ./uploadB:/home/irisowner/upload
+    environment:
+      #- ISC_DATA_DIRECTORY=/ISC/install
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=AP2C/IRIS
+      - primaryAgentAddress_ip=10.0.1.4
+      - MirrorAddress_ip=10.0.1.6
+      - ECPAddress_ip=10.0.100.6
+      - MIRRORROLE=REPORT
+      - CSPConfigName=ap2,ap2c
+      - TZ=JST-9
+    ports:
+      - "9096:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -a /ISC/utiles/installer.sh
+      --check-caps false
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.6
+      arbiter-tier:
+        ipv4_address: 10.0.100.6
 
   arbiter:
     container_name: arbiter
@@ -249,7 +294,7 @@ services:
       - "11972:11972"
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.6
+        ipv4_address: 10.0.1.7
 
 networks:
   iris-tier:
