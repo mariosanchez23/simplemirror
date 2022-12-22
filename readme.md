@@ -63,6 +63,7 @@ Webサーバが複数(専用Apache×2, IRIS同梱のApache×4, LB代わりのNGI
 |AP1B組み込みApache|http://irishost:9093/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
 |AP2A組み込みApache|http://irishost:9094/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
 |AP2B組み込みApache|http://irishost:9095/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
+|AP2C組み込みApache|http://irishost:9096/csp/bin/Systems/Module.cxw|You are not authorized to use this facility,未使用|
 |Web Gateway#1|http://irishost:8080/csp/bin/Systems/Module.cxw||
 |Web Gateway#2|http://irishost:8081/csp/bin/Systems/Module.cxw||
 |NGINX|http://irishost/csp/bin/Systems/Module.cxw|本用途に不向き|
@@ -81,10 +82,12 @@ Webサーバが複数(専用Apache×2, IRIS同梱のApache×4, LB代わりのNGI
 |Web Gateway#1|http://irishost:8080/ap1b/csp/sys/%25CSP.Portal.Home.zen|AP1B|
 |Web Gateway#1|http://irishost:8080/ap2a/csp/sys/%25CSP.Portal.Home.zen|AP2A|
 |Web Gateway#1|http://irishost:8080/ap2b/csp/sys/%25CSP.Portal.Home.zen|AP2B|
+|Web Gateway#1|http://irishost:8080/ap2c/csp/sys/%25CSP.Portal.Home.zen|AP2C|
 |Web Gateway#2|http://irishost:8081/ap1a/csp/sys/%25CSP.Portal.Home.zen|AP1A|
 |Web Gateway#2|http://irishost:8081/ap1b/csp/sys/%25CSP.Portal.Home.zen|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/csp/sys/%25CSP.Portal.Home.zen|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/csp/sys/%25CSP.Portal.Home.zen|AP2B|
+|Web Gateway#2|http://irishost:8081/ap2c/csp/sys/%25CSP.Portal.Home.zen|AP2C|
 |Web Gateway#1|http://irishost:8080/ap1/csp/sys/%25CSP.Portal.Home.zen |ミラーセットAP1のプライマリメンバ,本用途に不向き|
 |Web Gateway#1|http://irishost:8080/ap2/csp/sys/%25CSP.Portal.Home.zen |ミラーセットAP2のプライマリメンバ,本用途に不向き|
 |Web Gateway#2|http://irishost:8081/ap1/csp/sys/%25CSP.Portal.Home.zen |ミラーセットAP1のプライマリメンバ,本用途に不向き|
@@ -98,14 +101,17 @@ Webサーバが複数(専用Apache×2, IRIS同梱のApache×4, LB代わりのNGI
 |AP1B組み込みApache|http://irishost:9093/api/mgmnt/||
 |AP2A組み込みApache|http://irishost:9094/api/mgmnt/||
 |AP2B組み込みApache|http://irishost:9095/api/mgmnt/||
+|AP2C組み込みApache|http://irishost:9096/api/mgmnt/||
 |Web Gateway#1|http://irishost:8080/ap1a/api/mgmnt/|AP1A|
 |Web Gateway#1|http://irishost:8080/ap1b/api/mgmnt/|AP1B|
 |Web Gateway#1|http://irishost:8080/ap2a/api/mgmnt/|AP2A|
 |Web Gateway#1|http://irishost:8080/ap2b/api/mgmnt/|AP2B|
+|Web Gateway#1|http://irishost:8080/ap2c/api/mgmnt/|AP2C|
 |Web Gateway#2|http://irishost:8081/ap1a/api/mgmnt/|AP1A|
 |Web Gateway#2|http://irishost:8081/ap1b/api/mgmnt/|AP1B|
 |Web Gateway#2|http://irishost:8081/ap2a/api/mgmnt/|AP2A|
 |Web Gateway#2|http://irishost:8081/ap2b/api/mgmnt/|AP2B|
+|Web Gateway#2|http://irishost:8081/ap2c/api/mgmnt/|AP2C|
 |Web Gateway#1|http://irishost:8080/ap1/api/mgmnt/ |ミラーセットAP1のプライマリメンバ,用途次第|
 |Web Gateway#1|http://irishost:8080/ap2/api/mgmnt/ |ミラーセットAP2のプライマリメンバ,用途次第|
 |Web Gateway#2|http://irishost:8081/ap1/api/mgmnt/ |ミラーセットAP1のプライマリメンバ,用途次第|
@@ -354,6 +360,46 @@ Web gateway management portalで[Status=Server]が[複数発生](https://www.int
 [SYSTEM]
 REGISTRY_METHODS=Disabled
 ```
+
+# BI機能を試す
+ap2cは非同期のレポーティングメンバとして稼働しています。プライマリメンバ(ap2a)に対して発生したレコードの変更を、ap2cでキャッチアップし、組み込みBI機能分析することが可能です。
+
+>起動時点で、1000件のレコートが同期されています。
+
+プライマリメンバでデータを新規作成します。
+```
+$ docker-compose exec ap2a iris session iris -UMIRRORNS
+MIRRORNS>D ##class(HoleFoods.Utils).AddData(10000)
+10,000 row(s) created
+```
+この時点でレポーティングメンバに、新規作成分が反映されています。これらの差分を下記コマンドでBIキューブに反映します。
+
+```
+$ docker-compose exec ap2c iris session iris -UMIRRORNS
+MIRRORNS>do ##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)
+10,000 fact(s) updated
+Elapsed time: 1.492835s
+```
+
+下記コマンドで、件数が11,000になっていることを確認できます。
+```
+MIRRORNS>do ##class(%DeepSee.Utils).%Shell()
+DeepSee Command Line Shell
+----------------------------------------------------
+Enter q to quit, ? for help.
+>>select from HOLEFOODS
+
+Result:              11,000
+---------------------------------------------------------------------------
+Elapsed time:       .01146s
+>>
+```
+
+下記URLでレポーティングメンバ上のBI機能にアクセスできます。
+
+http://irishost:8080/ap2c/csp/mirrorns/_DeepSee.UI.Analyzer.zen?$NAMESPACE=MIRRORNS&CUBE=HoleFoods.cube
+
+
 
 # HAPROXY
 各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
