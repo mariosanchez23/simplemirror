@@ -21,8 +21,10 @@ ClassMethod setup(systemname) As %Status
       //h 3
       set primaryAgentAddress=$SYSTEM.Util.GetEnviron("primaryAgentAddress_ip")  //"10.0.1.2"
      
-      If mirrorRole="REPORT" { Set membertype=2}
-      Else { Set membertype="" } 
+      Set membertype=""
+      If mirrorRole="DR" { Set membertype=0}
+      ElseIf mirrorRole="REPORTR" { Set membertype=1}
+      ElseIf mirrorRole="REPORTRW" { Set membertype=2}
       // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
       do ..join(membertype,systemname,primaryAgentAddress)
     }

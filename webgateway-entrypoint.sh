@@ -38,6 +38,10 @@ configName5=${CONFIG_NAME5-LOCAL}
 host5=${SERVER_HOST5-localhost}
 port5=${SERVER_PORT5-51773}
 
+configName6=${CONFIG_NAME6-LOCAL}
+host6=${SERVER_HOST6-localhost}
+port6=${SERVER_PORT6-51773}
+
 MirrorConfigName=${MIRROR_CONFIG_NAME-LOCAL}
 MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 
@@ -55,6 +59,7 @@ MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName3" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName4" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName5" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[SYSTEM_INDEX]" "$configName6" "Enabled"
 
 # [$MirrorConfigName]
 ./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName]" "Ip_Address" "$host"
@@ -64,8 +69,8 @@ MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 ./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName]" "Mirror_Aware" "1"
 
 # [$MirrorConfigName2]
-./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "Ip_Address" "$host3"
-./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "TCP_Port" "$port3"
+./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "Ip_Address" "$host4"
+./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "TCP_Port" "$port4"
 ./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "Username" "$username"
 ./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "Password" "$password"
 ./cvtcfg setparameter "CSP.ini" "[$MirrorConfigName2]" "Mirror_Aware" "1"
@@ -100,6 +105,12 @@ MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 ./cvtcfg setparameter "CSP.ini" "[${configName5}]" "Username" "$username"
 ./cvtcfg setparameter "CSP.ini" "[${configName5}]" "Password" "$password"
 
+# [$configName6]
+./cvtcfg setparameter "CSP.ini" "[${configName6}]" "Ip_Address" "$host6"
+./cvtcfg setparameter "CSP.ini" "[${configName6}]" "TCP_Port" "$port6"
+./cvtcfg setparameter "CSP.ini" "[${configName6}]" "Username" "$username"
+./cvtcfg setparameter "CSP.ini" "[${configName6}]" "Password" "$password"
+
 # [APP_PATH_INDEX]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/" "Disabled"
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/csp" "Disabled"
@@ -110,6 +121,7 @@ MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/$configName3" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/$configName4" "Enabled"
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/$configName5" "Enabled"
+./cvtcfg setparameter "CSP.ini" "[APP_PATH_INDEX]" "/$configName6" "Enabled"
 
 # [APP_PATH:/]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/]" "Default_Server" "LOCAL"
@@ -124,12 +136,14 @@ MirrorConfigName2=${MIRROR_CONFIG_NAME2-LOCAL}
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName]" "Default_Server" "$configName"
 # [APP_PATH:/ap1b]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName2]" "Default_Server" "$configName2"
-# [APP_PATH:/ap2a]
+# [APP_PATH:/ap1d]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName3]" "Default_Server" "$configName3"
-# [APP_PATH:/ap2b]
+# [APP_PATH:/ap2a]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName4]" "Default_Server" "$configName4"
-# [APP_PATH:/ap2c]
+# [APP_PATH:/ap2b]
 ./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName5]" "Default_Server" "$configName5"
+# [APP_PATH:/ap2r]
+./cvtcfg setparameter "CSP.ini" "[APP_PATH:/$configName6]" "Default_Server" "$configName6"
 
 popd
 

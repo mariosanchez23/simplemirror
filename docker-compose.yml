@@ -12,8 +12,6 @@ services:
     hostname: ap1a
     image: *IRIS_IMAGE
     init: true    
-    depends_on:
-      - arbiter
     volumes:
       #- ./iris1A:/DB
       #- ./iris1A:/ISC
@@ -51,7 +49,6 @@ services:
     init: true    
     depends_on:
       - ap1a
-      - arbiter
     volumes:
       #- ./iris1B:/DB
       #- ./iris1B:/ISC
@@ -81,29 +78,29 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.3    
 
-  ap2a:
-    container_name: ap2a
-    hostname: ap2a
+  ap1d:
+    container_name: ap1d
+    hostname: ap1d
     image: *IRIS_IMAGE
     init: true    
     depends_on:
-      - arbiter
+      - ap1a
     volumes:
-      #- ./iris2A:/DB
-      #- ./iris2A:/ISC
+      #- ./iris1B:/DB
+      #- ./iris1B:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
-      - ./uploadA:/home/irisowner/upload
+      - ./uploadB:/home/irisowner/upload
     environment:
       #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=AP2A/IRIS
-      - ARBITER_ip=10.0.100.10
+      - IRIS_systemname=AP1D/IRIS
+      - primaryAgentAddress_ip=10.0.1.2
       - MirrorAddress_ip=10.0.1.4
+      - MIRRORROLE=DR
       - ECPAddress_ip=10.0.100.4
-      - MIRRORROLE=PRIMARY
-      - CSPConfigName=ap2,ap2a
+      - CSPConfigName=ap1,ap1d
       - TZ=JST-9
     ports:
       - "9094:52773"
@@ -117,30 +114,27 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.4
 
-  ap2b:
-    container_name: ap2b
-    hostname: ap2b
+  ap2a:
+    container_name: ap2a
+    hostname: ap2a
     image: *IRIS_IMAGE
     init: true    
-    depends_on:
-      - ap2a
-      - arbiter
     volumes:
-      #- ./iris2B:/DB
-      #- ./iris2B:/ISC
+      #- ./iris2A:/DB
+      #- ./iris2A:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
-      - ./uploadB:/home/irisowner/upload
+      - ./uploadA:/home/irisowner/upload
     environment:
       #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=AP2B/IRIS
-      - primaryAgentAddress_ip=10.0.1.4
+      - IRIS_systemname=AP2A/IRIS
+      - ARBITER_ip=10.0.100.10
       - MirrorAddress_ip=10.0.1.5
       - ECPAddress_ip=10.0.100.5
-      - MIRRORROLE=BACKUP
-      - CSPConfigName=ap2,ap2b
+      - MIRRORROLE=PRIMARY
+      - CSPConfigName=ap2,ap2a
       - TZ=JST-9
     ports:
       - "9095:52773"
@@ -154,17 +148,16 @@ services:
       arbiter-tier:
         ipv4_address: 10.0.100.5
 
-  # mirror reporting member
-  ap2c:
-    container_name: ap2c
-    hostname: ap2c
+  ap2b:
+    container_name: ap2b
+    hostname: ap2b
     image: *IRIS_IMAGE
     init: true    
     depends_on:
       - ap2a
     volumes:
-      #- ./iris2C:/DB
-      #- ./iris2C:/ISC
+      #- ./iris2B:/DB
+      #- ./iris2B:/ISC
       - ./:/ISC/utiles
       - ./cpf:/cpf
       - ./project:/project
@@ -172,12 +165,12 @@ services:
     environment:
       #- ISC_DATA_DIRECTORY=/ISC/install
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
-      - IRIS_systemname=AP2C/IRIS
-      - primaryAgentAddress_ip=10.0.1.4
+      - IRIS_systemname=AP2B/IRIS
+      - primaryAgentAddress_ip=10.0.1.5
       - MirrorAddress_ip=10.0.1.6
       - ECPAddress_ip=10.0.100.6
-      - MIRRORROLE=REPORT
-      - CSPConfigName=ap2,ap2c
+      - MIRRORROLE=BACKUP
+      - CSPConfigName=ap2,ap2b
       - TZ=JST-9
     ports:
       - "9096:52773"
@@ -190,6 +183,43 @@ services:
         ipv4_address: 10.0.1.6
       arbiter-tier:
         ipv4_address: 10.0.100.6
+
+  # mirror reporting member
+  ap2r:
+    container_name: ap2r
+    hostname: ap2r
+    image: *IRIS_IMAGE
+    init: true    
+    depends_on:
+      - ap2a
+    volumes:
+      #- ./iris2R:/DB
+      #- ./iris2R:/ISC
+      - ./:/ISC/utiles
+      - ./cpf:/cpf
+      - ./project:/project
+      - ./uploadB:/home/irisowner/upload
+    environment:
+      #- ISC_DATA_DIRECTORY=/ISC/install
+      - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
+      - IRIS_systemname=ap2r/IRIS
+      - primaryAgentAddress_ip=10.0.1.5
+      - MirrorAddress_ip=10.0.1.7
+      - ECPAddress_ip=10.0.100.7
+      - MIRRORROLE=REPORTRW
+      - CSPConfigName=ap2,ap2r
+      - TZ=JST-9
+    ports:
+      - "9097:52773"
+    command:
+      --key /ISC/utiles/iris.key
+      -a /ISC/utiles/installer.sh
+      --check-caps false
+    networks:
+      iris-tier:
+        ipv4_address: 10.0.1.7
+      arbiter-tier:
+        ipv4_address: 10.0.100.7
 
   arbiter:
     container_name: arbiter
@@ -217,15 +247,18 @@ services:
       - CONFIG_NAME2=ap1b
       - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
-      - CONFIG_NAME3=ap2a
+      - CONFIG_NAME3=ap1d
       - SERVER_HOST3=10.0.100.4
       - SERVER_PORT3=1972
-      - CONFIG_NAME4=ap2b
+      - CONFIG_NAME4=ap2a
       - SERVER_HOST4=10.0.100.5
       - SERVER_PORT4=1972
-      - CONFIG_NAME5=ap2c
+      - CONFIG_NAME5=ap2b
       - SERVER_HOST5=10.0.100.6
       - SERVER_PORT5=1972
+      - CONFIG_NAME6=ap2r
+      - SERVER_HOST6=10.0.100.7
+      - SERVER_PORT6=1972
       - MIRROR_CONFIG_NAME=ap1
       - MIRROR_CONFIG_NAME2=ap2
     ports:
@@ -247,15 +280,18 @@ services:
       - CONFIG_NAME2=ap1b
       - SERVER_HOST2=10.0.100.3
       - SERVER_PORT2=1972
-      - CONFIG_NAME3=ap2a
+      - CONFIG_NAME3=ap1d
       - SERVER_HOST3=10.0.100.4
       - SERVER_PORT3=1972
-      - CONFIG_NAME4=ap2b
+      - CONFIG_NAME4=ap2a
       - SERVER_HOST4=10.0.100.5
       - SERVER_PORT4=1972
-      - CONFIG_NAME5=ap2c
+      - CONFIG_NAME5=ap2b
       - SERVER_HOST5=10.0.100.6
       - SERVER_PORT5=1972
+      - CONFIG_NAME6=ap2r
+      - SERVER_HOST6=10.0.100.7
+      - SERVER_PORT6=1972
       - MIRROR_CONFIG_NAME=ap1
       - MIRROR_CONFIG_NAME2=ap2
     ports:
@@ -300,7 +336,7 @@ services:
       - "11972:11972"
     networks:
       iris-tier:
-        ipv4_address: 10.0.1.7
+        ipv4_address: 10.0.1.8
 
 networks:
   iris-tier:
@@ -309,6 +345,12 @@ networks:
       driver: default
       config:
       - subnet: 10.0.1.0/24
+  iris-dr-tier:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.2.0/24
   arbiter-tier:
     driver: bridge
     ipam:
