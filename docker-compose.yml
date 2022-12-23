@@ -97,9 +97,9 @@ services:
       - ISC_CPF_MERGE_FILE=/cpf/merge.cpf
       - IRIS_systemname=AP1D/IRIS
       - primaryAgentAddress_ip=10.0.1.2
-      - MirrorAddress_ip=10.0.1.4
-      - MIRRORROLE=DR
+      - MirrorAddress_ip=10.0.101.2
       - ECPAddress_ip=10.0.100.4
+      - MIRRORROLE=DR
       - CSPConfigName=ap1,ap1d
       - TZ=JST-9
     ports:
@@ -111,8 +111,10 @@ services:
     networks:
       iris-tier:
         ipv4_address: 10.0.1.4
+      iris-dr-tier:
+        ipv4_address: 10.0.101.2
       arbiter-tier:
-        ipv4_address: 10.0.100.4
+        ipv4_address: 10.0.100.4  
 
   ap2a:
     container_name: ap2a
@@ -350,7 +352,7 @@ networks:
     ipam:
       driver: default
       config:
-      - subnet: 10.0.2.0/24
+      - subnet: 10.0.101.0/24
   arbiter-tier:
     driver: bridge
     ipam:

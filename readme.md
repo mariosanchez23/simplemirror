@@ -28,6 +28,13 @@ $ ./stop.sh
 or
 $ ./start-stop-bridge.sh
 
+# うまく動作しない場合
+起動中にIRIS内でエラーが発生した場合、各サービスの出力にエラーが記録されています。
+```
+$ docker-compose logs ap1a
+$ docker-compose logs ap1b
+```
+
 # コンテナ群
 起動すると、下記のコンテナ群を起動します。
 |コンテナサービス名|コンテナイメージ|Web公開ポート|用途|AWSでの読み替え|

@@ -58,8 +58,12 @@ ClassMethod join(membertype, systemname, agentAddress) As %Status
   set instanceName="IRIS"
   
   // Join as failover:
-  set LocalInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") // "10.0.1.3"
-  set LocalInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.3"
+  If $SYSTEM.Util.GetEnviron("MirrorAddress_ip")'="" {
+    set LocalInfo("MirrorAddress") = $SYSTEM.Util.GetEnviron("MirrorAddress_ip") // "10.0.1.3"
+  }
+  If $SYSTEM.Util.GetEnviron("ECPAddress_ip")'="" {
+    set LocalInfo("ECPAddress") = $SYSTEM.Util.GetEnviron("ECPAddress_ip") // "10.0.100.3"
+  }
   If (membertype="") {
     s sc=##class(SYS.Mirror).JoinMirrorAsFailoverMember(mirrorName,systemname,instanceName,agentAddress,,.LocalInfo)
   }
