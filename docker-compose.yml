@@ -10,7 +10,9 @@ services:
   ap1a:
     container_name: ap1a
     hostname: ap1a
-    image: *IRIS_IMAGE
+    #image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     volumes:
       #- ./iris1A:/DB
@@ -45,7 +47,8 @@ services:
   ap1b:
     container_name: ap1b
     hostname: ap1b
-    image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     depends_on:
       - ap1a
@@ -81,7 +84,8 @@ services:
   ap1d:
     container_name: ap1d
     hostname: ap1d
-    image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     depends_on:
       - ap1a
@@ -119,7 +123,8 @@ services:
   ap2a:
     container_name: ap2a
     hostname: ap2a
-    image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     volumes:
       #- ./iris2A:/DB
@@ -153,7 +158,8 @@ services:
   ap2b:
     container_name: ap2b
     hostname: ap2b
-    image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     depends_on:
       - ap2a
@@ -190,7 +196,8 @@ services:
   ap2r:
     container_name: ap2r
     hostname: ap2r
-    image: *IRIS_IMAGE
+    build: 
+      context: ./iris
     init: true    
     depends_on:
       - ap2a

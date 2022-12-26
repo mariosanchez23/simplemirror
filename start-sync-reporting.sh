@@ -6,6 +6,10 @@ echo "Staring a primary"
 docker-compose up -d ap2a
 docker-compose exec -T ap2a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
 
+echo "Staring backups"
+docker-compose up -d ap1b
+docker-compose exec -T ap1b bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
+
 echo "Staring a reporting"
 docker-compose up -d ap2r
 docker-compose exec -T ap2r bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"

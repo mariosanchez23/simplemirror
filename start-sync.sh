@@ -22,6 +22,7 @@ docker-compose up -d webgw1
 sleep 3
 # defer populate data until mirror cluste is all set.
 echo "Populating data"
-#docker-compose exec -T ap1a bash -c "/ISC/utiles/populate-data.sh"
+docker-compose exec -T ap1a bash -c "/ISC/utiles/populate-data.sh"
 
 docker-compose ps
+./endpoints.sh

@@ -389,8 +389,8 @@ MIRRORNS>D ##class(HoleFoods.Utils).AddData(10000)
 この時点でレポーティングメンバに、新規作成分が反映されています。これらの差分を下記コマンドでBIキューブに反映します。
 
 ```
-$ docker-compose exec ap2r iris session iris -UMIRRORNS
-MIRRORNS>do ##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)
+$ docker-compose exec ap2r iris session iris
+USER>do ##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)
 10,000 fact(s) updated
 Elapsed time: 1.492835s
 ```
