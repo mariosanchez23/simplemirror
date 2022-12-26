@@ -28,9 +28,16 @@ ClassMethod setup(systemname) As %Status
       // "":sync member, 0:async (DR) member, 1:Read-Only Reporting, 2:Read-Write Reporting
       do ..join(membertype,systemname,primaryAgentAddress)
     }
+
     // Create DB and add it to mirror
     do ..createMirrorDB(mirrorRole)
+
+    // Add global mappings for BI from MIRRORNS to USER
+    If (mirrorRole="REPORTR")!(mirrorRole="REPORTRW") {
+      Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","HoleFoods.*",.props)
+      Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","OBJ.DSTIME",.props)
     }
+  }
   quit $$$OK
 }
 
@@ -83,15 +90,13 @@ ClassMethod enableMirrorService() As %Status
   write !,"Enabling mirror service..."
 }
 
-ClassMethod createMirrorDB(role) As %Status
+ClassMethod createMirrorDB(role, mirNSName = "MIRRORNS", mirDBName = "MIRRORDB") As %Status
 {
   Set tSC='$$$OK
   Try {
     set dir="/DB/"
-    set dirName="mirrorDB"
-    set mirDBName="MIRRORDB"
     set mirrorName="MIRRORSET"
-    set mirNSName="MIRRORNS"
+    set dirName=mirDBName
     
     write !, "Creating databases and NS "_mirNSName,!
     
@@ -107,7 +112,7 @@ ClassMethod createMirrorDB(role) As %Status
     do ##class(Config.Databases).Create(mirDBName,.Properties)
 
     // wait until mirror's ready
-    for i=1:1:10 {
+    for i=1:1:30 {
       h 1
       set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
       if mirrorStatus="Backup" Quit
@@ -137,10 +142,6 @@ ClassMethod createMirrorDB(role) As %Status
     }
     // Enables production
     Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
-
-    // Add global mappings for BI from MIRRORNS to USER
-    Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","HoleFoods.*",.props)
-    Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","OBJ.DSTIME",.props)
 
     Set tSC=..EnableWebApps()  //create a web app
     $$$ThrowOnError(tSC)
@@ -190,17 +191,16 @@ ClassMethod CreateProduction(ByRef tVars) As %Status
   Return tSC
 }
 
-ClassMethod EnableWebApps(ByRef tVars) As %Status
+ClassMethod EnableWebApps(ns = "mirrorns") As %Status
 {
   New $NAMESPACE
 	Set tSC='$$$OK
 	Try {
-    If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="mirrorns" }
 
     Set oldns=$NAMESPACE
     Set $NAMESPACE="%SYS"
 
-    Set webapp="/csp/"_tVars("NAMESPACE")_"/api/"
+    Set webapp="/csp/"_ns_"/api/"
     Set tSC = ##Class(Security.Applications).Create(webapp)
     Kill props
     Set tSC = ##Class(Security.Applications).Get(webapp,.props)
@@ -208,7 +208,7 @@ ClassMethod EnableWebApps(ByRef tVars) As %Status
     Set props("DispatchClass")="MyApp.disp"
     Set props("Resource")=""
     Set props("MatchRoles")=":%All"
-    Set props("NameSpace")=tVars("NAMESPACE")
+    Set props("NameSpace")=ns
     Kill props("Type")
     Set tSC = ##Class(Security.Applications).Modify(webapp,.props)
     $$$ThrowOnError(tSC)
@@ -224,17 +224,16 @@ ClassMethod EnableWebApps(ByRef tVars) As %Status
   Return tSC
 }
 
-ClassMethod BISetup(ByRef tVars) As %Status
+ClassMethod BISetup(ns = "mirrorns") As %Status
 {
 	Set tSC='$$$OK
 	Try {
-		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="mirrorns" }
 
 	Set oldns=$NAMESPACE
 	New $NAMESPACE
 
 	#; Don't import Cube related classes here because this db is on a primary server
-	Set $NAMESPACE=tVars("NAMESPACE")
+	Set $NAMESPACE=ns
   Set tSC=$SYSTEM.OBJ.Load("/home/irisowner/Samples-BI/src/cls/HoleFoods/Region.cls","ck") 
   Set tSC=$SYSTEM.OBJ.Load("/home/irisowner/Samples-BI/src/cls/HoleFoods/Country.cls","ck") 
   Set tSC=$SYSTEM.OBJ.Load("/home/irisowner/Samples-BI/src/cls/HoleFoods/Outlet.cls","ck") 
