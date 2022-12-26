@@ -186,12 +186,12 @@ $ ./start.sh
 ## 状態 ap1a:プライマリ, ap1b:バックアップ 
 起動直後の状態です。Health Checkの応答は以下の通りです。  
 ```
-$ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw -v
-$ curl -m 5 http://irishost:8081/ap1a/csp//mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/ap1a/csp/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
-$ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
-$ curl -m 5 http://irishost:8081/ap1b/csp//mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8081/ap1b/csp/mirror_status.cxw -v
 < HTTP/1.1 503 Service Unavailable
 FALIED
 ```
@@ -274,7 +274,7 @@ Health Checkに誰も応答しないので、下記はいずれもcurlでtimeout
 $ docker-compose exec ap1b iris stop iris quietly
 $ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
-$ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
 
@@ -325,10 +325,10 @@ ap1aを起動します。ap1aはプライマリになります。
 ap1bは停止状態のままですので、curlでtimeout(5秒)が発生しました。
 ```
 $ docker-compose exec ap1a iris start iris quietly
-$ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
 < HTTP/1.1 200 OK
 SUCCESS
-$ curl -m 5 http://irishost:8080/ap1b/csp//mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
 アプリケーションへのAPIコールは、ap1a(プライマリ)に到達していることが確認できます。
@@ -353,7 +353,7 @@ $ ./start.sh
 
 連続でリクエストを発生させても正常に動作することを確認します。
 ```
-$ curl -m 5 http://irishost:8080/ap1a/csp//mirror_status.cxw?[1-100]
+$ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw?[1-100]
 ```
 全てSUCCESSが返るはずです。
 ```

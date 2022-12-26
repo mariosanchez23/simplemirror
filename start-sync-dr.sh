@@ -1,5 +1,6 @@
 #!/bin/bash
 chmod -fR 777 iris1A 
+chmod -fR 777 iris1B 
 chmod -fR 777 iris1D 
 
 echo "Staring arbiter"
@@ -20,12 +21,6 @@ docker-compose exec -T ap1d bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/wait
 
 # webgw
 docker-compose up -d webgw1
-
-# wait until primary is ready
-sleep 3
-# defer populate data until mirror cluste is all set.
-echo "Populating data"
-docker-compose exec -T ap1a bash -c "/ISC/utiles/populate-data.sh"
 
 docker-compose ps
 ./endpoints.sh

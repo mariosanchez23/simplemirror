@@ -32,9 +32,20 @@ docker-compose exec -T ap2r bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/wait
 docker-compose up -d webgw1 webgw2 nginx haproxy
 # give them a moment
 
+# wait until primary is ready
+#sleep 3
+
+for ((i=0; i < 10; i++)); do
+	status=$(curl http://localhost:8080/ap2a/csp/mirror_status.cxw -s)
+	if [ $status="SUCCESS" ]; then
+		break
+	fi
+	echo "waiting..."
+	sleep 1
+done
+
 # defer populate data until mirror cluste is all set.
 echo "Populating data"
-docker-compose exec -T ap1a bash -c "/ISC/utiles/populate-data.sh"
 docker-compose exec -T ap2a bash -c "/ISC/utiles/populate-data.sh"
 
 docker-compose ps
