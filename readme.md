@@ -378,26 +378,45 @@ REGISTRY_METHODS=Disabled
 # BI機能を試す
 ap2rは非同期のレポーティングメンバとして稼働しています。プライマリメンバ(ap2a)に対して発生したレコードの変更を、ap2rでキャッチアップし、組み込みBI機能分析することが可能です。
 
->起動時点で、1000件のレコートが同期されています。
+>起動時点で、2000件程度のレコートが同期されています。
 
-プライマリメンバでデータを新規作成します。
+下記コマンドで初期データをBIキューブに反映します。
 ```
-$ docker-compose exec ap2a iris session iris -UMIRRORNS
-MIRRORNS>D ##class(HoleFoods.Utils).AddData(10000)
+$ docker-compose exec ap2r iris session iris '##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)'
+1,883 fact(s) updated
+Elapsed time: .983161s
+```
+
+下記コマンドで、件数が1,000になっていることを確認できます。
+```
+docker-compose exec ap2r iris session iris "##class(%DeepSee.Utils).%Shell()"
+DeepSee Command Line Shell
+----------------------------------------------------
+Enter q to quit, ? for help.
+>>select from HOLEFOODS
+
+Result:              1,000
+---------------------------------------------------------------------------
+Elapsed time:       .112427s
+>>
+```
+
+プライマリメンバで新たに10,000件のレコードを新規作成します。
+```
+$ docker-compose exec ap2a iris session iris -UMIRRORNS "##class(HoleFoods.Utils).AddData(10000)"
 10,000 row(s) created
 ```
-この時点でレポーティングメンバに、新規作成分が反映されています。これらの差分を下記コマンドでBIキューブに反映します。
 
+これらの差分を下記コマンドでBIキューブに反映します。
 ```
-$ docker-compose exec ap2r iris session iris
-USER>do ##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)
+$ docker-compose exec ap2r iris session iris '##class(%DeepSee.Utils).%SynchronizeCube("HOLEFOODS",1)'
 10,000 fact(s) updated
-Elapsed time: 1.492835s
+Elapsed time: 4.419442s
 ```
 
-下記コマンドで、件数が11,000になっていることを確認できます。
+件数が上記で新規作成した件数だけ増加している事を確認します。
 ```
-MIRRORNS>do ##class(%DeepSee.Utils).%Shell()
+docker-compose exec ap2r iris session iris "##class(%DeepSee.Utils).%Shell()"
 DeepSee Command Line Shell
 ----------------------------------------------------
 Enter q to quit, ? for help.
@@ -405,9 +424,10 @@ Enter q to quit, ? for help.
 
 Result:              11,000
 ---------------------------------------------------------------------------
-Elapsed time:       .01146s
+Elapsed time:       .112717s
 >>
 ```
+
 
 下記URLでレポーティングメンバ上のBI機能にアクセスできます。
 

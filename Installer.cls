@@ -3,35 +3,6 @@ Include %occInclude
 Class Mirror.Installer
 {
 
-XData setup [ XMLNamespace = INSTALLER ]
-{
-<Manifest>
-<Var Name="ProductionName" Value="Demo.Production"/>
-
-<Namespace Name="${NAMESPACE}" Create="no">
-	<Invoke Class="%SYSTEM.OBJ" Method="ImportDir" CheckStatus="true">
-		<Arg Value="${SRCDIR}" />
-		<Arg Value="" />
-		<Arg Value="ck" />
-		<Arg Value=".e" />
-		<Arg Value="1" />
-	</Invoke>
- 	<Production Name="${ProductionName}" AutoStart="1">
-	<!-- AutoStart dosen't work -->
-	</Production>
-</Namespace>
-</Manifest>
-}
-
-XData setup2 [ XMLNamespace = INSTALLER ]
-{
-<Manifest>
-<Namespace Name="${NAMESPACE}" Create="no">
- 	<CSPApplication Url="/csp/${NAMESPACE}" Directory="${CSPDIR}${NAMESPACE}" Resource=""/>
-</Namespace>
-</Manifest>
-}
-
 ClassMethod setup(systemname) As %Status
 {
   if $system.Mirror.IsMember() {
@@ -114,66 +85,72 @@ ClassMethod enableMirrorService() As %Status
 
 ClassMethod createMirrorDB(role) As %Status
 {
-  set dir="/DB/"
-  set dirName="mirrorDB"
-  set mirDBName="MIRRORDB"
-  set mirrorName="MIRRORSET"
-  set mirNSName="MIRRORNS"
-  
-  write !, "Creating databases and NS "_mirNSName,!
-  
-  // If no, create it inside of container
-  If '##class(%Library.File).Exists(dir) {
-    Set dir="/home/irisowner/"
-  }
+  Set tSC='$$$OK
+  Try {
+    set dir="/DB/"
+    set dirName="mirrorDB"
+    set mirDBName="MIRRORDB"
+    set mirrorName="MIRRORSET"
+    set mirNSName="MIRRORNS"
+    
+    write !, "Creating databases and NS "_mirNSName,!
+    
+    // If no, create it inside of container
+    If '##class(%Library.File).Exists(dir) {
+      Set dir="/home/irisowner/"
+    }
 
-  // Create directory for db
-  do ##class(%Library.File).CreateNewDir(dir,dirName)
-  // Add DB to config
-  set Properties("Directory")=dir_dirName
-  do ##class(Config.Databases).Create(mirDBName,.Properties)
+    // Create directory for db
+    do ##class(%Library.File).CreateNewDir(dir,dirName)
+    // Add DB to config
+    set Properties("Directory")=dir_dirName
+    do ##class(Config.Databases).Create(mirDBName,.Properties)
 
-  // wait until mirror's ready
-  for i=1:1:10 {
-    h 1
-    set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
-    if mirrorStatus="Backup" Quit
-    if mirrorStatus="Primary" Quit
-    if mirrorStatus="Connected" Quit   // async member
-  }
-  if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")&(mirrorStatus'="Connected")) { 
-    write "Mirror failed to be ready: Mirror Status:"_mirrorStatus,!
-    quit '$$$OK
-  }
+    // wait until mirror's ready
+    for i=1:1:10 {
+      h 1
+      set mirrorStatus=$LIST($SYSTEM.Mirror.GetMemberStatus(mirrorName))
+      if mirrorStatus="Backup" Quit
+      if mirrorStatus="Primary" Quit
+      if mirrorStatus="Connected" Quit   // async member
+    }
+    if ((mirrorStatus'="Primary")&(mirrorStatus'="Backup")&(mirrorStatus'="Connected")) { 
+      write "Mirror failed to be ready: Mirror Status:"_mirrorStatus,!
+      Return '$$$OK
+    }
 
-  Set dbsize=64
-  set rc = ##class(SYS.Database).CreateDatabase(dir_dirName,dbsize,,,,,mirDBName,mirrorName)
-  if 'rc { 
-    write !,"Database creation failed!"
-    do $system.OBJ.DisplayError(rc)
-    quit rc
-  }
-  
-  // Create namespace for mirrored database
-  set ns("Globals")=mirDBName
-  set ns("Routines")=mirDBName
-  do ##class(Config.Namespaces).Create(mirNSName,.ns)
-  set rc = ##class(Config.Namespaces).Exists(mirNSName,.obj,.status)
-  if 'rc {
-    write !, "NS creation failed."
-    do $system.OBJ.DisplayError(rc)
-    quit rc
-  }
-  // Enables production
-  Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
+    Set dbsize=64
+    set tSC = ##class(SYS.Database).CreateDatabase(dir_dirName,dbsize,,,,,mirDBName,mirrorName)
+    if 'tSC { 
+      write !,"Database creation failed!"
+      $$$ThrowOnError(tSC)
+    }
+    
+    // Create namespace for mirrored database
+    set ns("Globals")=mirDBName
+    set ns("Routines")=mirDBName
+    do ##class(Config.Namespaces).Create(mirNSName,.ns)
+    set tSC = ##class(Config.Namespaces).Exists(mirNSName,.obj,.status)
+    if 'tSC {
+      write !, "NS creation failed."
+      $$$ThrowOnError(tSC)
+    }
+    // Enables production
+    Do ##class(%EnsembleMgr).EnableNamespace(mirNSName,0)
 
-  // Add global mappings for BI from MIRRORNS to USER
-  Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","HoleFoods.*",.props)
-  Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","OBJ.DSTIME",.props)
+    // Add global mappings for BI from MIRRORNS to USER
+    Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","HoleFoods.*",.props)
+    Kill props Set props("Database")="MIRRORDB",sc=##Class(Config.MapGlobals).Create("USER","OBJ.DSTIME",.props)
 
-  Set tSC=..EnableWebApps()  //create a web app
+    Set tSC=..EnableWebApps()  //create a web app
+    $$$ThrowOnError(tSC)
 
-  quit $$$OK
+	} Catch(e) {
+		Set tSC=e.AsStatus()
+    Do $system.OBJ.DisplayError(tSC)
+	}
+
+  Return tSC
 }
 
 /// Runs on primary only.
@@ -196,26 +173,16 @@ ClassMethod PopulateMirrorDB() As %Status
   Return tSC
 }
 
-/// This is a method generator whose code is generated by XGL.
-ClassMethod setupMethod(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
-{
-    #; Let our XGL document generate code for this method. 
-    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "setup")
-}
-
-ClassMethod setupMethod2(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
-{
-    #; Let our XGL document generate code for this method. 
-    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "setup2")
-}
-
 ClassMethod CreateProduction(ByRef tVars) As %Status
 {
+  New $NAMESPACE
 	Set tSC='$$$OK
 	Try {
 		If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
 		If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="MIRRORNS" }
-		$$$THROWONERROR(tSC,..setupMethod(.tVars))
+
+    Set $NAMESPACE=tVars("NAMESPACE")
+    $$$THROWONERROR(tSC,$SYSTEM.OBJ.ImportDir(tVars("SRCDIR"),"","ck",.e,1))
 	} Catch(e) {
 		Set tSC=e.AsStatus()
 	}
@@ -228,15 +195,14 @@ ClassMethod EnableWebApps(ByRef tVars) As %Status
   New $NAMESPACE
 	Set tSC='$$$OK
 	Try {
-    If '$D(tVars("SRCDIR")) { Set tVars("SRCDIR")="/project" }
     If '$D(tVars("NAMESPACE")) { Set tVars("NAMESPACE")="mirrorns" }
-    $$$THROWONERROR(tSC,..setupMethod2(.tVars))
 
     Set oldns=$NAMESPACE
     Set $NAMESPACE="%SYS"
 
     Set webapp="/csp/"_tVars("NAMESPACE")_"/api/"
     Set tSC = ##Class(Security.Applications).Create(webapp)
+    Kill props
     Set tSC = ##Class(Security.Applications).Get(webapp,.props)
     $$$ThrowOnError(tSC)
     Set props("DispatchClass")="MyApp.disp"
