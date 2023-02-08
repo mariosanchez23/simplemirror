@@ -1,6 +1,6 @@
 #!/bin/bash
 chmod -fR 777 iris1A 
-chmod -fR 777 iris1D 
+chmod -fR 777 iris1B 
 
 echo "Staring arbiter"
 docker-compose up -d arbiter
@@ -10,7 +10,7 @@ echo "Staring a primary"
 docker-compose up -d ap1a
 docker-compose exec -T ap1a bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
 
-echo "Staring backups"
+echo "Staring a backup"
 docker-compose up -d ap1b
 docker-compose exec -T ap1b bash -c "\$ISC_PACKAGE_INSTALLDIR/dev/Cloud/ICM/waitISC.sh '' 60"
 
