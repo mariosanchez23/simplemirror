@@ -4,14 +4,19 @@
 
 # 導入方法
 Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway-example)をSubModuleとして使用しています。[関連ポスト](https://community.intersystems.com/post/apache-and-containerised-iris)。
-下記の追加要素を加えるために、webgateway-entrypoint.sh,webgateway.confを本レポジトリ提供のファイルに置き換える必要があります。
+下記の追加要素を加えるために、本レポジトリ提供のファイルを置き換える必要があります。
+- キットのバージョン
 - ミラー構成
 - /api/パスの認識
 
+別途、Webgwatewayのキット(WebGateway-2022.3.0.606.0-lnxubuntu2004x64.tar.gz)をWRCから入手する必要があります。
 ```
 $ git clone --recursive https://github.com/IRISMeister/simplemirror.git
 $ cd simplemirror
-$ cp ./webgateway* iris-webgateway-example/
+$ mv /temp/WebGateway-2022.3.0.606.0-lnxubuntu2004x64.tar.gz iris-webgateway-example/
+$ cp ./webgateway-entrypoint.sh iris-webgateway-example/
+$ cp ./webgateway.conf iris-webgateway-example/
+$ cp ./webgateway-Dockerfile iris-webgateway-example/Dockerfile
 $ docker-compose -f iris-webgateway-example/docker-compose.yml build
 $ cp ミラーが有効なx64コンテナ用のライセンスキー ./iris.key
 
