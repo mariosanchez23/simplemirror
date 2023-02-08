@@ -11,9 +11,9 @@ Parameter ExposeServerExceptions = 0;
 ClassMethod Get() As %Stream.Object
 {
     Do ..%SetHeader("Content-Type","application/json")
-    set imageBuilt=$G(^ImageBuildDate)
-	Set ret={"HostName":($SYSTEM.INetInfo.LocalHostName()),"UserName":($USERNAME),"Status":"OK","TimeStamp":($ZDATETIME($H)),"ImageBuilt":(imageBuilt)}
-    Quit ret
+	Set ret={"HostName":($SYSTEM.INetInfo.LocalHostName()),"UserName":($USERNAME),"Status":"OK","TimeStamp":($ZDATETIME($H))}
+	Set ^log($INCREMENT(^log))=ret.TimeStamp
+    Return ret
 }
 
 /// 履歴を取得する

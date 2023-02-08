@@ -160,18 +160,18 @@ $ curl http://irishost:9092/api/mgmnt/ -u SuperUser:SYS -s | jq
 
 |要素|エンドポイント|備考|
 |:--|:--|:--|
-|Web Gateway#1|http://irishost/ap1/csp/mirrorns/api/get|ミラーセットAP1のプライマリメンバ|
-|Web Gateway#2|http://irishost/ap2/csp/mirrorns/api/get|ミラーセットAP2のプライマリメンバ|
+|NGINX|http://irishost/ap1/csp/user/api/get|ミラーセットAP1のプライマリメンバ|
+|NGINX|http://irishost/ap2/csp/user/api/get|ミラーセットAP2のプライマリメンバ|
+|Web Gateway#1|http://irishost:8080/ap1/csp/user/api/get|ミラーセットAP1のプライマリメンバ|
+|Web Gateway#2|http://irishost:8080/ap2/csp/user/api/get|ミラーセットAP2のプライマリメンバ|
 
-- アクセス時には認証が必要です
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
+$ curl http://irishost:8080/ap1a/csp/user/api/get -s | jq
 {
   "HostName": "ap1a",
-  "UserName": "SuperUser",
+  "UserName": "UnknownUser",
   "Status": "OK",
-  "TimeStamp": "02/25/2021 12:54:22",
-  "ImageBuilt": ""
+  "TimeStamp": "02/08/2023 16:21:00"
 }
 ```
 
