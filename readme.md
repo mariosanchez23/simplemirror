@@ -4,8 +4,8 @@
 
 # 導入方法
 Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway-example)をSubModuleとして使用しています。[関連ポスト](https://community.intersystems.com/post/apache-and-containerised-iris)。
-下記の追加要素を加えるために、本レポジトリ提供のファイルを置き換える必要があります。
-- キットのバージョン
+下記の変更や追加要素を加えるために、本レポジトリ提供のファイルを置き換える必要があります。
+- Web Gatewayキットのバージョン
 - ミラー構成
 - /api/パスの認識
 
@@ -22,11 +22,9 @@ $ cp ミラーが有効なx64コンテナ用のライセンスキー ./iris.key
 
 # 起動方法
 $ ./start.sh (複数のサブネットで構成される環境)
-or
-$ ./start-single-bridge.sh   (単一のサブネットのみで構成される環境)
 ```
 > docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
-> また、特定のコンポーネントの起動・停止状態を可能とするために、意図的に依存性をはずしています。
+> また、特定のコンポーネントの起動・停止状態を可能とするために、意図的に依存性(depends_on)をはずしています。
 
 # 停止方法
 $ ./stop.sh
@@ -438,7 +436,9 @@ Elapsed time:       .112717s
 
 http://irishost:8080/ap2r/csp/mirrorns/_DeepSee.UI.Analyzer.zen?$NAMESPACE=MIRRORNS&CUBE=HoleFoods.cube
 
+# DR非同期のミラーリングの切替え、切戻しについて
 
+[こちら](about_dr_failover.md)を産参照。
 
 # HAPROXY
 各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
