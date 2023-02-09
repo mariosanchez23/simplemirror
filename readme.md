@@ -438,7 +438,7 @@ http://irishost:8080/ap2r/csp/mirrorns/_DeepSee.UI.Analyzer.zen?$NAMESPACE=MIRRO
 
 # DR非同期のミラーリングの切替え、切戻しについて
 
-[こちら](about_dr_failover.md)を産参照。
+[こちら](about_dr_failover.md)を参照。
 
 # HAPROXY
 各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
