@@ -26,7 +26,7 @@ $ ./start-all.sh
 > docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
 > また、特定のコンポーネントの起動・停止状態を可能とするために、意図的に依存性(depends_on)をはずしています。
 
-多数のコンテナが作成されるための対象のメモリとDISK I/Oが発生します。コンテナ実行環境によっては不測のエラーが発生するかもしれません。目的に応じてより軽量な環境を起動する事が出来ます。
+多数のコンテナ(11個、うち6個がIRISインスタンス)が作成されるため、多数のCPU/メモリ消費とDISK I/Oが発生します。コンテナ実行環境によっては不測のエラーが発生するかもしれません。目的に応じてより軽量な環境を起動する事が出来ます。
 
 |スクリプト|環境|
 |:--|:--|
@@ -210,34 +210,32 @@ FALIED
 ```
 RESTアプリケーションコールで、リクエストがap1a(ミラーセットAP1のプライマリメンバ)、ap2a(ミラーセットAP2のプライマリメンバ)に到達していることが確認できます。
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
+$ curl http://irishost/ap1/csp/user/api/get -s | jq
 {
   "HostName": "ap1a",
-  "UserName": "SuperUser",
+  "UserName": "UnknownUser",
   "Status": "OK",
-  "TimeStamp": "02/25/2021 12:54:22",
-  "ImageBuilt": ""
+  "TimeStamp": "02/09/2023 12:36:26"
 }
-$ curl http://irishost/ap2/csp/mirrorns/api/get -s | jq
+$ curl http://irishost/ap2/csp/user/api/get -s | jq
 {
   "HostName": "ap2a",
-  "UserName": "SuperUser",
+  "UserName": "UnknownUser",
   "Status": "OK",
-  "TimeStamp": "02/25/2021 12:55:58",
-  "ImageBuilt": ""
+  "TimeStamp": "02/09/2023 12:36:40"
 }
 ```
 NGINXのログは下記のようになっているはずです。10.0.100.11:80(Web Gateway #1),10.0.100.12:80(Web Gateway #2)が交互に使用されています。
 ```
 $ docker-compose logs -f nginx
-nginx      | 10.0.100.1 - SuperUser [dd/mmm/yyyy:hh:mm:ss +0900] "GET /ap1/csp/mirrorns/api/get HTTP/1.1" 200 117 "-" "curl/7.58.0" "-" "10.0.100.11:80"
-nginx      | 10.0.100.1 - SuperUser [dd/mmm/yyyy:hh:mm:ss +0900] "GET /ap2/csp/mirrorns/api/get HTTP/1.1" 200 117 "-" "curl/7.58.0" "-" "10.0.100.12:80"
+nginx      | 10.0.100.1 - - [09/Feb/2023:12:36:26 +0900] "GET /ap1/csp/user/api/get HTTP/1.1" 200 103 "-" "curl/7.81.0" "-" "10.0.100.12:80"
+nginx      | 10.0.100.1 - - [09/Feb/2023:12:36:40 +0900] "GET /ap2/csp/user/api/get HTTP/1.1" 200 103 "-" "curl/7.81.0" "-" "10.0.100.11:80"
 ```
 
 2台のWebgatewayに、全ミラー構成(2セット)を認識させるために、下記を再実行します。
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get?[1-2] -u SuperUser:SYS -s | jq
-$ curl http://irishost/ap2/csp/mirrorns/api/get?[1-2] -u SuperUser:SYS -s | jq
+$ curl http://irishost/ap1/csp/user/api/get?[1-2] -s | jq
+$ curl http://irishost/ap2/csp/user/api/get?[1-2] -s | jq
 ```
 この段階で、Web gateway management portalのSystem Status画面を確認します。
 - http://irishost:8080/csp/bin/Systems/Module.cxw
@@ -247,10 +245,11 @@ $ curl http://irishost/ap2/csp/mirrorns/api/get?[1-2] -u SuperUser:SYS -s | jq
 
 |ServerNumber|ServerName|MirrorMember|MirrorStatus|
 |:--|:--|:--|:--|
-|n1|ap1|MIRRORSET:MIRRORA|Primary|
-|n2|ap1|MIRRORSET:MIRRORB|Failover|
-|n3|ap2|MIRRORSET:MIRRORA|Primary|
-|n4|ap2|MIRRORSET:MIRRORB|Failover|
+|n1|ap1|MIRRORSET:AP1A/IRIS|Primary|
+|n2|ap1|MIRRORSET:AP1B/IRIS|Failover|
+|n2|ap1|MIRRORSET:AP1D/IRIS|Async|
+|n3|ap2|MIRRORSET:AP2A/IRIS|Primary|
+|n4|ap2|MIRRORSET:AP2B/IRIS|Failover|
 
 > この状態になっていない場合、以後の動作は記載と異なったものとなります。
 
@@ -270,13 +269,12 @@ SUCCESS
 Web gatewayが、ミラーの状態を認識して、プライマリメンバにリクエストを送信するため、アプリケーションへのAPIコールは、ap1b(プライマリに昇格した元バックアップメンバ)に到達します。。
 
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
+$ curl http://irishost/ap1/csp/user/api/get -s | jq
 {
   "HostName": "ap1b",
-  "UserName": "SuperUser",
+  "UserName": "UnknownUser",
   "Status": "OK",
-  "TimeStamp": "02/25/2021 13:01:31",
-  "ImageBuilt": ""
+  "TimeStamp": "02/09/2023 13:36:04"
 }
 ```
 
@@ -293,7 +291,7 @@ curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 
 アプリケーションへのAPIコールも誰も応答しないので、curlでtimeout(5秒)が発生しました。
 ```
-$ curl -m 5 http://irishost/ap1/csp/mirrorns/api/get -s
+$ curl -m 5 http://irishost/ap1/csp/user/api/get
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
 
@@ -301,36 +299,36 @@ curlのタイムアウトを設定しない場合、各種設定値次第です�
 (Web gatewayのServer Response Timeoutと、NGINXのproxy_xxx_timeoutの関係で決まります)
 
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get -s
+$ curl http://irishost/ap1/csp/user/api/get
 <html>
 <head><title>504 Gateway Time-out</title></head>
 <body>
 <center><h1>504 Gateway Time-out</h1></center>
-<hr><center>nginx/1.19.7</center>
+<hr><center>nginx/1.23.3</center>
 </body>
 </html>
 ```
 
 その様子は、下記のログで確認できます。  
-14:09:51にwebgw2にリクエストが来ますが、それが1分後にタイムアウトし、14:10:51にNGINXにその旨記録されています。NGINXは同14:10:51にwebgw1を試みますが、webgw1も1分後の14:11:51にタイムアウトし、NGINXにその旨が記録されています。
+14:16:17にwebgw2にリクエストが来ますが、それが1分後にタイムアウトし、14:17:17にNGINXにその旨記録されています。NGINXはその後webgw1にリクエストしますが、それも1分後の14:18:17にタイムアウトし、NGINXにその旨が記録されています。
 
 ```
+$ docker-compose logs -f webgw1
+  ・
+  ・
+webgw      | 10.0.100.13 - - [09/Feb/2023:14:17:17 +0900] "GET /ap1/csp/user/api/get HTTP/1.0" 500 -
+
 $ docker-compose logs -f webgw2
-  ・
-  ・
-webgw2     | 10.0.100.13 - - [25/Feb/2021:14:09:51 +0900] "GET /ap1/csp/mirrorns/api/get HTTP/1.0" 500 -
+webgw2     | 10.0.100.13 - - [09/Feb/2023:14:16:17 +0900] "GET /ap1/csp/user/api/get HTTP/1.0" 500 -
 
 $ docker-compose logs -f nginx
   ・
   ・
-nginx      | 2021/02/25 14:10:51 [warn] 30#30: *29 upstream server temporarily disabled while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/mirrorns/api/get HTTP/1.1", upstream: "http://10.0.100.12:80/ap1/csp/mirrorns/api/get", host: "irishost"
-nginx      | 2021/02/25 14:10:51 [error] 30#30: *29 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/mirrorns/api/get HTTP/1.1", upstream: "http://10.0.100.12:80/ap1/csp/mirrorns/api/get", host: "irishost"
-nginx      | 2021/02/25 14:11:51 [warn] 30#30: *29 upstream server temporarily disabled while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/mirrorns/api/get HTTP/1.1", upstream: "http://10.0.100.11:80/ap1/csp/mirrorns/api/get", host: "irishost"
-nginx      | 2021/02/25 14:11:51 [error] 30#30: *29 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/mirrorns/api/get HTTP/1.1", upstream: "http://10.0.100.11:80/ap1/csp/mirrorns/api/get", host: "irishost"
-nginx      | 10.0.100.1 - SuperUser [25/Feb/2021:14:11:51 +0900] "GET /ap1/csp/mirrorns/api/get HTTP/1.1" 504 167 "-" "curl/7.58.0" "-" "10.0.100.12:80, 10.0.100.11:80"
-
-$ docker-compose logs -f webgw1
-webgw      | 10.0.100.13 - - [25/Feb/2021:14:10:51 +0900] "GET /ap1/csp/mirrorns/api/get HTTP/1.0" 500 -
+nginx      | 2023/02/09 14:17:17 [warn] 28#28: *7 upstream server temporarily disabled while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/user/api/get HTTP/1.1", upstream: "http://10.0.100.12:80/ap1/csp/user/api/get", host: "irishost"
+nginx      | 2023/02/09 14:17:17 [error] 28#28: *7 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/user/api/get HTTP/1.1", upstream: "http://10.0.100.12:80/ap1/csp/user/api/get", host: "irishost"
+nginx      | 2023/02/09 14:18:17 [warn] 28#28: *7 upstream server temporarily disabled while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/user/api/get HTTP/1.1", upstream: "http://10.0.100.11:80/ap1/csp/user/api/get", host: "irishost"
+nginx      | 10.0.100.1 - - [09/Feb/2023:14:18:17 +0900] "GET /ap1/csp/user/api/get HTTP/1.1" 504 167 "-" "curl/7.81.0" "-" "10.0.100.12:80, 10.0.100.11:80"
+nginx      | 2023/02/09 14:18:17 [error] 28#28: *7 upstream timed out (110: Connection timed out) while reading response header from upstream, client: 10.0.100.1, server: nginx, request: "GET /ap1/csp/user/api/get HTTP/1.1", upstream: "http://10.0.100.11:80/ap1/csp/user/api/get", host: "irishost"
 ```
 
 ## 状態 ap1a:プライマリ, ap1b:停止
@@ -338,26 +336,24 @@ ap1aを起動します。ap1aはプライマリになります。
 ap1bは停止状態のままですので、curlでtimeout(5秒)が発生しました。
 ```
 $ docker-compose exec ap1a iris start iris quietly
-$ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw -v
-< HTTP/1.1 200 OK
+$ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw
 SUCCESS
-$ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw -v
+$ curl -m 5 http://irishost:8080/ap1b/csp/mirror_status.cxw
 curl: (28) Operation timed out after 5001 milliseconds with 0 bytes received
 ```
 アプリケーションへのAPIコールは、ap1a(プライマリ)に到達していることが確認できます。
 
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get -s | jq
+$ curl -m 5 http://irishost/ap1/csp/user/api/get -s | jq
 {
   "HostName": "ap1a",
-  "UserName": "SuperUser",
+  "UserName": "UnknownUser",
   "Status": "OK",
-  "TimeStamp": "02/25/2021 14:19:13",
-  "ImageBuilt": ""
+  "TimeStamp": "02/09/2023 14:29:07"
 }
 ```
 
-# 負荷をかけてみる
+# 連続で負荷をかけてみる
 正常な状態に戻すために、いったん全コンテナの停止・起動を実行します。
 ```
 $ ./stop.sh
@@ -370,7 +366,7 @@ $ curl -m 5 http://irishost:8080/ap1a/csp/mirror_status.cxw?[1-100]
 ```
 全てSUCCESSが返るはずです。
 ```
-$ curl http://irishost/ap1/csp/mirrorns/api/get?[1-100] -u SuperUser:SYS 
+$ curl -m 5 http://irishost/ap1/csp/user/api/get?[1-100]
 ```
 全て"HostName": "ap1a"の応答が返るはずです。
 
@@ -444,11 +440,7 @@ Elapsed time:       .112717s
 
 下記URLでレポーティングメンバ上のBI機能にアクセスできます。
 
-http://irishost:8080/ap2r/csp/mirrorns/_DeepSee.UI.Analyzer.zen?$NAMESPACE=MIRRORNS&CUBE=HoleFoods.cube
-
-# DR非同期のミラーリングの切替え、切戻しについて
-
-[こちら](about_dr_failover.md)を参照。
+http://irishost:8080/ap2r/csp/user/_DeepSee.UI.Analyzer.zen?$NAMESPACE=MIRRORNS&CUBE=HoleFoods.cube
 
 # HAPROXY
 各IRISのポート:1972に対してHAPROXYを設定してあります。これにより、HAPROXY経由でのアクセスは常にプライマリメンバへのアクセスになります。
@@ -470,5 +462,6 @@ jdbc:IRIS://irishost:1972/mirrorns  (ap1のプライマリメンバ)
 jdbc:IRIS://irishost:11972/mirrorns (ap2のプライマリメンバ)  
 select * from User_Report.Record
 ```
+# DR非同期のミラーリングの切替え、切戻しについて
 
-
+[こちら](about_dr_failover.md)を参照ください。

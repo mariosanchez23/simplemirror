@@ -12,7 +12,7 @@ ClassMethod Get() As %Stream.Object
 {
     Do ..%SetHeader("Content-Type","application/json")
 	Set ret={"HostName":($SYSTEM.INetInfo.LocalHostName()),"UserName":($USERNAME),"Status":"OK","TimeStamp":($ZDATETIME($H))}
-	Set ^log($INCREMENT(^log))=ret.TimeStamp
+	Set ^|"MIRRORNS"|log($INCREMENT(^|"MIRRORNS"|log))=ret.TimeStamp
     Return ret
 }
 
@@ -23,8 +23,8 @@ ClassMethod History() As %Stream.Object
     
 	Set ret=[]
 	Set c="" For {
-		Set c=$O(^log(c)) q:c=""
-		Do ret.%Push({"TimeStamp":(^log(c))})
+		Set c=$O(^|"MIRRORNS"|log(c)) q:c=""
+		Do ret.%Push({"TimeStamp":(^|"MIRRORNS"|log(c))})
 	}
     Quit ret
 }
