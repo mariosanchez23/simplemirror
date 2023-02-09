@@ -351,12 +351,12 @@ networks:
       driver: default
       config:
       - subnet: 10.0.1.0/24
-  iris-dr-tier:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 10.0.101.0/24
+  #iris-dr-tier:
+  #  driver: bridge
+  #  ipam:
+  #    driver: default
+  #    config:
+  #    - subnet: 10.0.101.0/24
   arbiter-tier:
     driver: bridge
     ipam:
