@@ -21,15 +21,25 @@ $ docker-compose -f iris-webgateway-example/docker-compose.yml build
 $ cp ミラーが有効なx64コンテナ用のライセンスキー ./iris.key
 
 # 起動方法
-$ ./start.sh (複数のサブネットで構成される環境)
+$ ./start-all.sh
 ```
 > docker-compose up で起動しないでください。起動手順にdocker-composeでは制御しきれない依存関係があります。
 > また、特定のコンポーネントの起動・停止状態を可能とするために、意図的に依存性(depends_on)をはずしています。
 
+多数のコンテナが作成されるための対象のメモリとDISK I/Oが発生します。コンテナ実行環境によっては不測のエラーが発生するかもしれません。目的に応じてより軽量な環境を起動する事が出来ます。
+
+|スクリプト|環境|
+|:--|:--|
+|start-all.sh|全て起動|
+|start-dr.sh|プライマリ+非同期DR+WebServer１台|
+|start-reporting.sh|プライマリ+非同期レポーティング+WebServer１台|
+|start-sync-dr.sh|プライマリ+バックアップ+非同期DR+WebServer１台|
+|start-sync-reporting.sh|プライマリ+バックアップ+非同期レポーティング+WebServer１台|
+|start-sync.sh|プライマリ+バックアップ+WebServer１台|
+
+
 # 停止方法
 $ ./stop.sh
-or
-$ ./start-stop-bridge.sh
 
 # うまく動作しない場合
 起動中にIRIS内でエラーが発生した場合、各サービスの出力にエラーが記録されています。
