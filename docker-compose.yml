@@ -1,6 +1,6 @@
 version: '3.7'
 x-var: &ARBITER_IMAGE
-  "containers.intersystems.com/intersystems/arbiter:2022.3.0.606.0"
+  "containers.intersystems.com/intersystems/arbiter:2023.1.1.380.0"
 x-var: &WEBGW_IMAGE
   "iris-webgateway-example_web:latest"
 

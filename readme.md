@@ -9,11 +9,11 @@ Dmitriy氏の[web gateway container](https://github.com/caretdev/iris-webgateway
 - ミラー構成
 - /api/パスの認識
 
-別途、Webgwatewayのキット(WebGateway-2022.3.0.606.0-lnxubuntu2004x64.tar.gz)をWRCから入手する必要があります。
+別途、Webgwatewayのキット(WebGateway-2023.1.1.380.0-lnxubuntu2204x64.tar.gz)をWRCから入手する必要があります。
 ```
 $ git clone --recursive https://github.com/IRISMeister/simplemirror.git
 $ cd simplemirror
-$ mv /temp/WebGateway-2022.3.0.606.0-lnxubuntu2004x64.tar.gz iris-webgateway-example/
+$ mv /temp/WebGateway-2023.1.1.380.0-lnxubuntu2204x64.tar.gz iris-webgateway-example/
 $ cp ./webgateway-entrypoint.sh iris-webgateway-example/
 $ cp ./webgateway.conf iris-webgateway-example/
 $ cp ./webgateway-Dockerfile iris-webgateway-example/Dockerfile
